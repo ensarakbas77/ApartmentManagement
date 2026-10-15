@@ -1,18 +1,54 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { AuthProvider, useAuth } from '@/context/auth-context';
 
-SplashScreen.preventAutoHideAsync();
+// Oturum kontrol edilene kadar açılış ekranı (splash) görünür kalsın.
+void SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <AuthProvider>
+      <StatusBar style="auto" />
+      <RootNavigator />
+    </AuthProvider>
+  );
+}
+
+function RootNavigator() {
+  const { initializing, profile } = useAuth();
+  const role = profile?.role;
+
+  useEffect(() => {
+    if (!initializing) {
+      void SplashScreen.hideAsync();
+    }
+  }, [initializing]);
+
+  // Stack.Protected: guard false olan ekranlara gidilemez; gidilmeye çalışılırsa
+  // "index" ekranına yönlendirilir, o da kullanıcıyı rolüne uygun panele gönderir.
+  // Not: Bu sadece arayüz korumasıdır. Asıl güvenlik firestore.rules dosyasındadır.
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+
+      <Stack.Protected guard={!profile}>
+        <Stack.Screen name="login" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={role === 'admin'}>
+        <Stack.Screen name="admin" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={role === 'manager'}>
+        <Stack.Screen name="manager" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={role === 'resident'}>
+        <Stack.Screen name="resident" />
+      </Stack.Protected>
+    </Stack>
   );
 }

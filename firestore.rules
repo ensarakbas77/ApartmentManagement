@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// Firestore güvenlik kuralları.
+// Uygulamadaki ekran gizleme sadece görünüştür; verinin asıl koruması buradadır.
+// Firebase Console > Firestore Database > Rules sekmesine yapıştırılıp "Publish" edilir.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function currentRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && currentRole() == 'admin';
+    }
+
+    function isManagerOrAdmin() {
+      return isSignedIn() && currentRole() in ['admin', 'manager'];
+    }
+
+    // users/{userId}: döküman kimliği = Firebase Auth uid
+    // Alanlar: username, displayName, role ('admin' | 'manager' | 'resident'), apartmentNo, createdAt
+    match /users/{userId} {
+      // Herkes kendi profilini; admin ve yönetici tüm profilleri okuyabilir.
+      allow read: if isSignedIn() && (request.auth.uid == userId || isManagerOrAdmin());
+
+      // Kullanıcı oluşturma, rol değiştirme ve silme sadece admin'e açık.
+      // Kimse kendi rolünü değiştiremez.
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Listede olmayan her şey varsayılan olarak kapalı.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
