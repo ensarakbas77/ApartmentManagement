@@ -1,11 +1,13 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
@@ -70,7 +72,7 @@ export default function ComposeAnnouncementScreen() {
       <Stack.Screen options={{ title: isEdit ? 'Duyuruyu düzenle' : 'Yeni duyuru' }} />
 
       {loading ? (
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       ) : (
         <>
           <Card style={styles.section}>

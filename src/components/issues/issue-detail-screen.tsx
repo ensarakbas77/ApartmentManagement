@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useState, type ComponentProps } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 
 import { IssueStatusChip, issueStatusTone } from '@/components/issues/issue-status-chip';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Card } from '@/components/ui/card';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
@@ -54,7 +56,7 @@ export function IssueDetailScreen({ id, canManage = false }: IssueDetailScreenPr
   if ((issue === undefined && !error) || (!issue && busy === 'delete')) {
     return (
       <Screen edges={['bottom']}>
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       </Screen>
     );
   }

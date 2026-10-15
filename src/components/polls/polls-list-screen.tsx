@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { PollStatusChip } from '@/components/polls/poll-status-chip';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,8 @@ import { IconButton } from '@/components/ui/icon-button';
 import { Notice } from '@/components/ui/notice';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { APARTMENT_COUNT } from '@/constants/apartment';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
@@ -47,7 +49,7 @@ export function PollsListScreen({ onOpen, onCreate }: PollsListScreenProps) {
       }>
       {error ? <Notice tone="danger" message={error} /> : null}
 
-      {polls === null && !error ? <ActivityIndicator style={styles.loading} color={colors.primary} /> : null}
+      {polls === null && !error ? <SkeletonList /> : null}
 
       {polls?.length === 0 ? (
         <EmptyState

@@ -1,12 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { DueStatusChip } from '@/components/dues/due-status-chip';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { IbanCard } from '@/components/iban-card';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { formatRelativeDate } from '@/lib/date';
@@ -49,7 +52,7 @@ export default function ResidentDuesScreen() {
     <Screen title="Aidatlarım" subtitle={`Daire ${apartmentNo}`}>
       {error ? <Notice tone="danger" message={error} /> : null}
 
-      {dues === null && !error ? <ActivityIndicator style={styles.loading} color={colors.primary} /> : null}
+      {dues === null && !error ? <SkeletonList /> : null}
 
       {dues && dues.length > 0 ? (
         <Card
@@ -82,6 +85,8 @@ export default function ResidentDuesScreen() {
           </Text>
         </Card>
       ) : null}
+
+      <IbanCard />
 
       {dues?.length === 0 ? (
         <EmptyState

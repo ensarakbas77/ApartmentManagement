@@ -4,12 +4,15 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
+  writeBatch,
   type DocumentData,
   type DocumentSnapshot,
   type Timestamp,
@@ -114,6 +117,51 @@ export async function updateAnnouncement(id: string, input: AnnouncementInput) {
   await updateDoc(doc(announcementsCollection, id), { ...data, updatedAt: serverTimestamp() });
 }
 
+/** Duyuruyu ve okunma kayıtlarını siler. */
 export async function deleteAnnouncement(id: string) {
-  await deleteDoc(doc(announcementsCollection, id));
+  const reads = await getDocs(readsCollection(id));
+  const batch = writeBatch(db);
+  reads.docs.forEach((read) => batch.delete(read.ref));
+  batch.delete(doc(announcementsCollection, id));
+  await batch.commit();
+}
+
+/* ---------- Okunma kayıtları: announcements/{id}/reads/{uid} ---------- */
+
+const readsCollection = (announcementId: string) => collection(db, 'announcements', announcementId, 'reads');
+
+/** Bu oturumda zaten yazılmış okunma kayıtları (aynı kaydı tekrar tekrar yazmamak için). */
+const recordedReads = new Set<string>();
+
+/** Duyuruyu açan kullanıcının dairesini "okudu" olarak kaydeder (yönetici görür). */
+export async function recordAnnouncementRead(announcementId: string, reader: UserProfile) {
+  if (reader.apartmentNo === null) return;
+  const key = `${announcementId}:${reader.uid}`;
+  if (recordedReads.has(key)) return;
+  recordedReads.add(key);
+  try {
+    await setDoc(doc(readsCollection(announcementId), reader.uid), {
+      apartmentNo: reader.apartmentNo,
+      readAt: serverTimestamp(),
+    });
+  } catch {
+    // Okunma kaydı kritik değil; başarısız olursa bir sonraki açılışta tekrar denenir.
+    recordedReads.delete(key);
+  }
+}
+
+/** Duyuruyu okuyan dairelerin numaralarını canlı dinler (sadece yönetici). */
+export function subscribeToAnnouncementReaders(
+  announcementId: string,
+  onChange: (apartmentNos: number[]) => void,
+  onError: (error: Error) => void,
+) {
+  return onSnapshot(
+    readsCollection(announcementId),
+    (snap) => {
+      const apartments = new Set(snap.docs.map((d) => Number(d.data().apartmentNo)).filter(Number.isInteger));
+      onChange([...apartments].sort((a, b) => a - b));
+    },
+    onError,
+  );
 }

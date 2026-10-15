@@ -17,6 +17,10 @@ export default function ManagerLayout() {
       <Stack.Screen name="expenses/index" options={{ title: 'Giderler' }} />
       <Stack.Screen name="expenses/compose" options={{ title: 'Gider ekle', presentation: 'modal' }} />
       <Stack.Screen name="expenses/[id]" options={{ title: 'Gider' }} />
+      <Stack.Screen name="payment-info" options={{ title: 'Ödeme bilgileri', presentation: 'modal' }} />
+      <Stack.Screen name="contacts/index" options={{ title: 'Önemli numaralar' }} />
+      <Stack.Screen name="contacts/compose" options={{ title: 'Numara ekle', presentation: 'modal' }} />
+      <Stack.Screen name="report" options={{ title: 'Yıllık rapor' }} />
     </RoleStack>
   );
 }

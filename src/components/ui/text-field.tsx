@@ -1,7 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { forwardRef, useState, type ComponentProps } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  type TextInput as TextInputHandle,
+  type TextInputProps,
+} from 'react-native';
 
+import { Text, TextInput } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -14,7 +21,7 @@ interface TextFieldProps extends TextInputProps {
   password?: boolean;
 }
 
-export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
+export const TextField = forwardRef<TextInputHandle, TextFieldProps>(function TextField(
   { label, icon, hint, password = false, style, ...inputProps },
   ref,
 ) {

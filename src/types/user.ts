@@ -23,6 +23,8 @@ export interface UserProfile {
   role: UserRole;
   /** Kullanıcının oturduğu daire (1-9). Dairesi olmayan admin için null. */
   apartmentNo: number | null;
+  /** İsteğe bağlı; WhatsApp hatırlatmaları için. Boş olabilir. */
+  phone: string;
   createdAt?: Timestamp;
 }
 

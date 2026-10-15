@@ -1,6 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { radius, spacing, useThemeColors } from '@/constants/theme';
+import { selectionFeedback } from '@/lib/haptics';
 
 interface SegmentedControlProps<T extends string> {
   options: { value: T; label: string }[];
@@ -27,7 +29,10 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="button"
             accessibilityState={{ selected, disabled }}
             disabled={disabled}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              if (option.value !== value) selectionFeedback();
+              onChange(option.value);
+            }}
             style={[styles.segment, selected && { backgroundColor: colors.surface }]}>
             <Text
               style={[

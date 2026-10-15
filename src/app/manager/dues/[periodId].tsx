@@ -1,6 +1,7 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { DueStatusChip } from '@/components/dues/due-status-chip';
 import { Avatar } from '@/components/ui/avatar';
@@ -9,9 +10,15 @@ import { Card } from '@/components/ui/card';
 import { Notice } from '@/components/ui/notice';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
+import { APARTMENT_NAME } from '@/constants/apartment';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
+import { useApartmentSettings } from '@/hooks/use-apartment-settings';
 import { formatRelativeDate } from '@/lib/date';
+import { tapFeedback } from '@/lib/haptics';
 import { formatMoney } from '@/lib/money';
+import { sendWhatsApp } from '@/lib/phone';
 import {
   deletePeriod,
   markDuePaid,
@@ -20,6 +27,7 @@ import {
   subscribeToPeriodDues,
   summarizeDues,
 } from '@/services/dues';
+import { formatIban } from '@/services/settings';
 import { subscribeToUsers } from '@/services/users';
 import { formatPeriod, PAYMENT_METHOD_LABELS, type Due, type DuePeriod, type PaymentMethod } from '@/types/dues';
 import type { UserProfile } from '@/types/user';
@@ -46,12 +54,14 @@ export default function DuePeriodDetailScreen() {
     return () => stops.forEach((stop) => stop());
   }, [periodId]);
 
-  // Daire numarasına göre o dairede kayıtlı kişilerin adları.
+  const settings = useApartmentSettings();
+
+  // Daire numarasına göre o dairede kayıtlı kişiler.
   const residentsByApartment = useMemo(() => {
-    const map = new Map<number, string[]>();
+    const map = new Map<number, UserProfile[]>();
     for (const user of users) {
       if (user.apartmentNo === null) continue;
-      map.set(user.apartmentNo, [...(map.get(user.apartmentNo) ?? []), user.displayName]);
+      map.set(user.apartmentNo, [...(map.get(user.apartmentNo) ?? []), user]);
     }
     return map;
   }, [users]);
@@ -61,7 +71,7 @@ export default function DuePeriodDetailScreen() {
   if ((period === undefined && !error) || (!period && deleting)) {
     return (
       <Screen edges={['bottom']}>
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       </Screen>
     );
   }
@@ -110,6 +120,20 @@ export default function DuePeriodDetailScreen() {
     ]);
   }
 
+  /** Ödenmemiş aidat için hazır mesajla WhatsApp'ı açar (telefon yoksa paylaşım menüsü). */
+  async function remind(due: Due) {
+    const residents = residentsByApartment.get(due.apartmentNo) ?? [];
+    const recipient = residents.find((r) => r.phone) ?? residents[0];
+    const greeting = recipient ? `Merhaba ${recipient.displayName.split(' ')[0]},` : 'Merhaba,';
+    const payment = settings?.iban
+      ? `\n\nIBAN: ${formatIban(settings.iban)}${settings.accountHolder ? `\nAlıcı: ${settings.accountHolder}` : ''}`
+      : '';
+    const message =
+      `${greeting} ${APARTMENT_NAME} Daire ${due.apartmentNo} için ${periodName} aidatı ` +
+      `(${formatMoney(due.amount)}) henüz ödenmemiş görünüyor.${payment}\n\nTeşekkürler.`;
+    await sendWhatsApp(recipient?.phone || null, message);
+  }
+
   function confirmDelete() {
     Alert.alert(
       'Dönemi sil',
@@ -155,7 +179,7 @@ export default function DuePeriodDetailScreen() {
       </Card>
 
       <Text style={[typography.caption, { color: colors.textMuted }]}>
-        Ödeme aldığınız daireye dokunup işaretleyin.
+        Ödeme aldığınız daireye dokunup işaretleyin. Yeşil butonla WhatsApp'tan hatırlatma gönderebilirsiniz.
       </Text>
 
       {error ? <Notice tone="danger" message={error} /> : null}
@@ -170,6 +194,7 @@ export default function DuePeriodDetailScreen() {
             disabled={busyDueId !== null || deleting}
             showDivider={index < dues.length - 1}
             onPress={() => openDueActions(due)}
+            onRemind={due.paid ? undefined : () => void remind(due)}
           />
         ))}
       </Card>
@@ -203,13 +228,15 @@ function DueRow({
   disabled,
   showDivider,
   onPress,
+  onRemind,
 }: {
   due: Due;
-  residents: string[];
+  residents: UserProfile[];
   busy: boolean;
   disabled: boolean;
   showDivider: boolean;
   onPress: () => void;
+  onRemind?: () => void;
 }) {
   const colors = useThemeColors();
   const detail = due.paid
@@ -232,7 +259,7 @@ function DueRow({
       <Avatar name="" apartmentNo={due.apartmentNo} size={40} />
       <View style={styles.flex}>
         <Text style={[typography.bodyStrong, { color: colors.text }]} numberOfLines={1}>
-          {residents.length > 0 ? residents.join(', ') : `Daire ${due.apartmentNo}`}
+          {residents.length > 0 ? residents.map((r) => r.displayName).join(', ') : `Daire ${due.apartmentNo}`}
         </Text>
         <Text style={[typography.caption, { color: colors.textMuted }]} numberOfLines={1}>
           {residents.length === 0 ? 'Kayıtlı sakin yok · ' : ''}
@@ -240,12 +267,34 @@ function DueRow({
         </Text>
       </View>
       {busy ? <ActivityIndicator color={colors.primary} /> : <DueStatusChip paid={due.paid} />}
+      {onRemind && !busy ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Daire ${due.apartmentNo} için WhatsApp hatırlatması gönder`}
+          onPress={() => {
+            tapFeedback();
+            onRemind();
+          }}
+          disabled={disabled}
+          hitSlop={6}
+          style={({ pressed }) => [styles.remind, pressed && { opacity: 0.8 }]}>
+          <Ionicons name="logo-whatsapp" size={18} color="#FFFFFF" />
+        </Pressable>
+      ) : null}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  remind: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#25D366',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   loading: {
     marginTop: spacing.xl,
   },

@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
@@ -9,6 +9,8 @@ import { IconButton } from '@/components/ui/icon-button';
 import { Notice } from '@/components/ui/notice';
 import { RoleBadge } from '@/components/ui/role-badge';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { APARTMENT_COUNT } from '@/constants/apartment';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
@@ -63,7 +65,7 @@ export default function UsersScreen() {
       {error ? <Notice tone="danger" message={error} /> : null}
 
       {users === null && !error ? (
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       ) : null}
 
       {users && users.length > 0 ? (

@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { radius, spacing, useThemeColors, type ThemeColors } from '@/constants/theme';
 import { ISSUE_STATUS_LABELS, type IssueStatus } from '@/types/issue';
 

@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { useThemeColors } from '@/constants/theme';
+import { tapFeedback } from '@/lib/haptics';
 
 interface IconButtonProps {
   icon: ComponentProps<typeof Ionicons>['name'];
@@ -17,7 +18,10 @@ export function IconButton({ icon, onPress, accessibilityLabel }: IconButtonProp
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      onPress={onPress}
+      onPress={() => {
+        tapFeedback();
+        onPress();
+      }}
       hitSlop={8}
       style={({ pressed }) => [
         styles.button,

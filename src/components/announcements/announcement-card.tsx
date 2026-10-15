@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
+import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { formatRelativeDate } from '@/lib/date';
 import type { Announcement } from '@/types/announcement';
@@ -9,24 +10,35 @@ import type { Announcement } from '@/types/announcement';
 interface AnnouncementCardProps {
   announcement: Announcement;
   onPress: () => void;
+  /** Bu telefonda henüz açılmadıysa "Yeni" etiketi gösterilir. */
+  isNew?: boolean;
 }
 
 /** Duyuru listesindeki tek kart: başlık, kısa metin, tarih; önemliyse vurgulu. */
-export function AnnouncementCard({ announcement, onPress }: AnnouncementCardProps) {
+export function AnnouncementCard({ announcement, onPress, isNew = false }: AnnouncementCardProps) {
   const colors = useThemeColors();
   const { important } = announcement;
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${important ? 'Önemli duyuru: ' : ''}${announcement.title}`}
+      accessibilityLabel={`${isNew ? 'Yeni. ' : ''}${important ? 'Önemli duyuru: ' : ''}${announcement.title}`}
       onPress={onPress}
       style={({ pressed }) => pressed && styles.pressed}>
       <Card style={[styles.card, important && { borderColor: colors.warning, borderWidth: 1 }]}>
-        {important ? (
-          <View style={[styles.importantBadge, { backgroundColor: colors.warningSoft }]}>
-            <Ionicons name="alert-circle" size={14} color={colors.warning} />
-            <Text style={[styles.importantText, { color: colors.warning }]}>Önemli</Text>
+        {important || isNew ? (
+          <View style={styles.badges}>
+            {isNew ? (
+              <View style={[styles.importantBadge, { backgroundColor: colors.primary }]}>
+                <Text style={[styles.importantText, { color: colors.primaryText }]}>Yeni</Text>
+              </View>
+            ) : null}
+            {important ? (
+              <View style={[styles.importantBadge, { backgroundColor: colors.warningSoft }]}>
+                <Ionicons name="alert-circle" size={14} color={colors.warning} />
+                <Text style={[styles.importantText, { color: colors.warning }]}>Önemli</Text>
+              </View>
+            ) : null}
           </View>
         ) : null}
         <Text style={[typography.bodyStrong, { color: colors.text }]} numberOfLines={2}>
@@ -56,6 +68,10 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: spacing.sm,
+  },
+  badges: {
+    flexDirection: 'row',
+    gap: spacing.xs + 2,
   },
   importantBadge: {
     flexDirection: 'row',

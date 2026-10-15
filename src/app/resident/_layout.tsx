@@ -12,6 +12,8 @@ export default function ResidentLayout() {
       <Stack.Screen name="issues/[id]" options={{ title: 'Talep' }} />
       <Stack.Screen name="expenses/index" options={{ title: 'Giderler' }} />
       <Stack.Screen name="expenses/[id]" options={{ title: 'Gider' }} />
+      <Stack.Screen name="contacts" options={{ title: 'Önemli numaralar' }} />
+      <Stack.Screen name="report" options={{ title: 'Yıllık rapor' }} />
     </RoleStack>
   );
 }

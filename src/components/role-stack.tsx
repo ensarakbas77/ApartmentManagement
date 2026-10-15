@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import type { ReactNode } from 'react';
 
-import { useThemeColors } from '@/constants/theme';
+import { fonts, useThemeColors } from '@/constants/theme';
 
 /**
  * Her rol klasörünün dış Stack'i: içinde sekmeler ((tabs) grubu) ve sekmelerin üstüne açılan
@@ -15,7 +15,7 @@ export function RoleStack({ children }: { children?: ReactNode }) {
       screenOptions={{
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.primary,
-        headerTitleStyle: { color: colors.text },
+        headerTitleStyle: { color: colors.text, fontFamily: fonts.bold },
         headerShadowVisible: false,
         contentStyle: { backgroundColor: colors.background },
         headerBackTitle: 'Geri',

@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,6 +9,8 @@ import { MonthSwitcher } from '@/components/ui/month-switcher';
 import { Notice } from '@/components/ui/notice';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { subscribeToAllDues, summarizeDues } from '@/services/dues';
@@ -89,7 +91,7 @@ export function ExpensesListScreen({ onOpen, onCreate }: ExpensesListScreenProps
 
       {error ? <Notice tone="danger" message={error} /> : null}
 
-      {expenses === null && !error ? <ActivityIndicator style={styles.loading} color={colors.primary} /> : null}
+      {expenses === null && !error ? <SkeletonList /> : null}
 
       {expenses && monthExpenses.length === 0 ? (
         <EmptyState

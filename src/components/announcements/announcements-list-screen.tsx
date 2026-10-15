@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { AnnouncementCard } from '@/components/announcements/announcement-card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,9 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { IconButton } from '@/components/ui/icon-button';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
 import { spacing, useThemeColors } from '@/constants/theme';
+import { useUnreadAnnouncements } from '@/hooks/use-unread-announcements';
 import { subscribeToAnnouncements } from '@/services/announcements';
 import type { Announcement } from '@/types/announcement';
 
@@ -22,6 +24,7 @@ export function AnnouncementsListScreen({ onOpen, onCreate }: AnnouncementsListS
   const colors = useThemeColors();
   const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { unreadIds } = useUnreadAnnouncements();
 
   useEffect(
     () =>
@@ -46,7 +49,7 @@ export function AnnouncementsListScreen({ onOpen, onCreate }: AnnouncementsListS
       {error ? <Notice tone="danger" message={error} /> : null}
 
       {announcements === null && !error ? (
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       ) : null}
 
       {announcements?.length === 0 ? (
@@ -68,6 +71,7 @@ export function AnnouncementsListScreen({ onOpen, onCreate }: AnnouncementsListS
         <AnnouncementCard
           key={announcement.id}
           announcement={announcement}
+          isNew={unreadIds.has(announcement.id)}
           onPress={() => onOpen(announcement.id)}
         />
       ))}

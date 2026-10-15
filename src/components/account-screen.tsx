@@ -1,13 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, type Href } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
+import { PhoneEditor } from '@/components/phone-editor';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RoleBadge } from '@/components/ui/role-badge';
 import { Screen } from '@/components/ui/screen';
+import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import type { UserRole } from '@/types/user';
@@ -49,6 +51,14 @@ export function AccountScreen() {
           </View>
         </View>
       </Card>
+
+      <Text style={[typography.label, styles.sectionLabel, { color: colors.textMuted }]}>İLETİŞİM</Text>
+      <PhoneEditor
+        key={profile.phone}
+        uid={profile.uid}
+        phone={profile.phone}
+        hint="Yönetici size aidat hatırlatmalarını bu numaradan WhatsApp ile gönderebilir."
+      />
 
       <Text style={[typography.label, styles.sectionLabel, { color: colors.textMuted }]}>GÜVENLİK</Text>
       <Card padded={false}>

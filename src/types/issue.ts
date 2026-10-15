@@ -18,6 +18,7 @@ export const ISSUE_CATEGORIES = [
   'heating',
   'cleaning',
   'common_area',
+  'parking',
   'other',
 ] as const;
 
@@ -33,6 +34,7 @@ export const ISSUE_CATEGORY_INFO: Record<
   heating: { label: 'Isınma / Doğalgaz', icon: 'flame-outline' },
   cleaning: { label: 'Temizlik', icon: 'sparkles-outline' },
   common_area: { label: 'Ortak alan / Bahçe', icon: 'leaf-outline' },
+  parking: { label: 'Otopark / Garaj', icon: 'car-outline' },
   other: { label: 'Diğer', icon: 'ellipsis-horizontal-circle-outline' },
 };
 

@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { IssueStatusChip } from '@/components/issues/issue-status-chip';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { formatRelativeDate } from '@/lib/date';
@@ -68,7 +70,7 @@ export function IssuesListScreen({ onOpen, onCreate }: IssuesListScreenProps) {
 
       {error ? <Notice tone="danger" message={error} /> : null}
 
-      {visible === null && !error ? <ActivityIndicator style={styles.loading} color={colors.primary} /> : null}
+      {visible === null && !error ? <SkeletonList /> : null}
 
       {visible?.length === 0 ? (
         <EmptyState

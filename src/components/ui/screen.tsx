@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
+import { Text } from '@/components/ui/text';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
 
 interface ScreenProps {

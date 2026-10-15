@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { radius, spacing, useThemeColors } from '@/constants/theme';
 
 export function PollStatusChip({ closed }: { closed: boolean }) {

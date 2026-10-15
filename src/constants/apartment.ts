@@ -1,3 +1,6 @@
+/** Uygulamada gösterilen apartman adı. */
+export const APARTMENT_NAME = 'Sürur Apartmanı';
+
 /** Apartmandaki daire sayısı. Daire numaraları 1'den başlar. */
 export const APARTMENT_COUNT = 9;
 

@@ -1,15 +1,18 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { IconButton } from '@/components/ui/icon-button';
+import { IbanCard } from '@/components/iban-card';
 import { Notice } from '@/components/ui/notice';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { subscribeToAllDues, subscribeToPeriods, summarizeDues } from '@/services/dues';
@@ -48,7 +51,7 @@ export default function ManagerDuesScreen() {
       headerRight={<IconButton icon="add" accessibilityLabel="Yeni aidat dönemi aç" onPress={openCreate} />}>
       {error ? <Notice tone="danger" message={error} /> : null}
 
-      {periods === null && !error ? <ActivityIndicator style={styles.loading} color={colors.primary} /> : null}
+      {periods === null && !error ? <SkeletonList /> : null}
 
       {periods && periods.length > 0 ? (
         <Card style={styles.summary}>
@@ -65,6 +68,8 @@ export default function ManagerDuesScreen() {
           </Text>
         </Card>
       ) : null}
+
+      <IbanCard onEdit={() => router.push('/manager/payment-info')} />
 
       {periods?.length === 0 ? (
         <EmptyState

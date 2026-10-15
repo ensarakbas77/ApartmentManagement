@@ -25,6 +25,7 @@ import {
 } from 'firebase/firestore';
 
 import { app, db } from '@/config/firebase';
+import { isValidPhone, normalizePhone } from '@/lib/phone';
 import { isValidUsername, normalizeUsername, usernameToEmail } from '@/lib/username';
 import { isUserRole, type UserProfile, type UserRole } from '@/types/user';
 
@@ -39,6 +40,8 @@ export interface NewUserInput {
   password: string;
   role: AssignableRole;
   apartmentNo: number;
+  /** İsteğe bağlı; boş bırakılabilir. */
+  phone: string;
 }
 
 /** Kullanıcıya gösterilebilecek mesaj içeren hata. */
@@ -53,8 +56,16 @@ export function toUserProfile(snapshot: DocumentSnapshot<DocumentData>): UserPro
     displayName: String(data.displayName ?? data.username ?? ''),
     role: data.role,
     apartmentNo: typeof data.apartmentNo === 'number' ? data.apartmentNo : null,
+    phone: typeof data.phone === 'string' ? data.phone : '',
     createdAt: data.createdAt,
   };
+}
+
+/** Boş telefon geçerlidir; doluysa normalleştirilip doğrulanır. */
+function validatePhone(input: string): string {
+  const phone = normalizePhone(input);
+  if (phone && !isValidPhone(phone)) throw new UserServiceError('Geçerli bir telefon numarası girin.');
+  return phone;
 }
 
 /** Daire numarasına, sonra isme göre sıralar. Dairesi olmayan (admin) en üstte. */
@@ -116,6 +127,7 @@ export async function createUser(input: NewUserInput): Promise<UserProfile> {
     );
   }
   if (input.password.length < 6) throw new UserServiceError('Şifre en az 6 karakter olmalı.');
+  const phone = validatePhone(input.phone);
 
   const existing = await getDocs(query(usersCollection, where('username', '==', username), limit(1)));
   if (!existing.empty) throw new UserServiceError(`"${username}" kullanıcı adı zaten kullanılıyor.`);
@@ -138,6 +150,7 @@ export async function createUser(input: NewUserInput): Promise<UserProfile> {
     displayName,
     role: input.role,
     apartmentNo: input.apartmentNo,
+    phone,
   };
 
   try {
@@ -147,6 +160,7 @@ export async function createUser(input: NewUserInput): Promise<UserProfile> {
       displayName: profile.displayName,
       role: profile.role,
       apartmentNo: profile.apartmentNo,
+      phone: profile.phone,
       createdAt: serverTimestamp(),
     });
   } catch {
@@ -172,6 +186,10 @@ export async function removeUser(uid: string): Promise<void> {
 
 export async function updateUserRole(uid: string, role: AssignableRole): Promise<void> {
   await updateDoc(doc(usersCollection, uid), { role });
+}
+
+export async function updateUserPhone(uid: string, phone: string): Promise<void> {
+  await updateDoc(doc(usersCollection, uid), { phone: validatePhone(phone) });
 }
 
 function getCreateErrorMessage(error: unknown, username: string): string {

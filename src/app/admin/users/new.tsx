@@ -1,15 +1,17 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Text } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
-import { APARTMENT_NUMBERS } from '@/constants/apartment';
+import { APARTMENT_NAME, APARTMENT_NUMBERS } from '@/constants/apartment';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
+import { sendWhatsApp } from '@/lib/phone';
 import {
   createUser,
   generateTemporaryPassword,
@@ -33,6 +35,7 @@ export default function NewUserScreen() {
   const [apartmentNo, setApartmentNo] = useState<number | null>(null);
   const [role, setRole] = useState<AssignableRole>('resident');
   const [password, setPassword] = useState(() => generateTemporaryPassword());
+  const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -56,17 +59,18 @@ export default function NewUserScreen() {
     setError(null);
     setSubmitting(true);
     try {
-      const user = await createUser({ displayName, username, password, role, apartmentNo });
+      const user = await createUser({ displayName, username, password, role, apartmentNo, phone });
       const message =
-        `Apartman Yönetimi giriş bilgileri\n` +
+        `${APARTMENT_NAME} uygulaması giriş bilgileri\n` +
         `Kullanıcı adı: ${user.username}\n` +
         `Şifre: ${password}`;
 
       Alert.alert('Kullanıcı oluşturuldu', `${message}\n\nBu bilgileri sakine iletin.`, [
         {
-          text: 'Paylaş',
+          // Telefon girildiyse doğrudan o kişinin WhatsApp sohbeti, yoksa paylaşım menüsü açılır.
+          text: user.phone ? 'WhatsApp ile gönder' : 'Paylaş',
           onPress: () => {
-            void Share.share({ message });
+            void sendWhatsApp(user.phone || null, message);
             router.back();
           },
         },
@@ -145,6 +149,17 @@ export default function NewUserScreen() {
           }}
           placeholder="örn. daire5"
           hint="Sakin giriş yaparken bunu yazacak. Türkçe karakterler otomatik düzeltilir."
+          editable={!submitting}
+        />
+        <TextField
+          label="Telefon (isteğe bağlı)"
+          icon="logo-whatsapp"
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="0532 123 45 67"
+          keyboardType="phone-pad"
+          maxLength={20}
+          hint="Giriş bilgilerini ve aidat hatırlatmalarını WhatsApp'tan göndermek için."
           editable={!submitting}
         />
         <TextField

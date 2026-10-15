@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { PollResults } from '@/components/polls/poll-results';
 import { PollStatusChip } from '@/components/polls/poll-status-chip';
@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { APARTMENT_NUMBERS } from '@/constants/apartment';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
@@ -58,7 +60,7 @@ export function PollDetailScreen({ id, canManage = false }: PollDetailScreenProp
   if ((poll === undefined && !error) || (!poll && busy === 'delete')) {
     return (
       <Screen edges={['bottom']}>
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       </Screen>
     );
   }

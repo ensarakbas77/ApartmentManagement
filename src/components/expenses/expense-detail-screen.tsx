@@ -1,12 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { formatFullDate } from '@/lib/date';
 import { formatMoney } from '@/lib/money';
@@ -31,7 +33,7 @@ export function ExpenseDetailScreen({ id, onEdit }: ExpenseDetailScreenProps) {
   if ((expense === undefined && !error) || (!expense && deleting)) {
     return (
       <Screen edges={['bottom']}>
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       </Screen>
     );
   }

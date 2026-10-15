@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 
+import { PhoneEditor } from '@/components/phone-editor';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,6 +10,8 @@ import { Notice } from '@/components/ui/notice';
 import { RoleBadge } from '@/components/ui/role-badge';
 import { Screen } from '@/components/ui/screen';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import {
@@ -43,7 +46,7 @@ export default function UserDetailScreen() {
   if ((user === undefined && !error) || (!user && busy === 'delete')) {
     return (
       <Screen edges={['bottom']}>
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       </Screen>
     );
   }
@@ -135,6 +138,13 @@ export default function UserDetailScreen() {
           </Text>
         </Card>
       ) : null}
+
+      {!isProtected ? <PhoneEditor
+          key={target.phone}
+          uid={target.uid}
+          phone={target.phone}
+          hint="Aidat hatırlatmaları bu numaraya WhatsApp'tan gönderilir. Kullanıcı da kendi Hesabım ekranından değiştirebilir."
+        /> : null}
 
       {error ? <Notice tone="danger" message={error} /> : null}
 

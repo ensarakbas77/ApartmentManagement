@@ -1,15 +1,25 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
+import { APARTMENT_NUMBERS } from '@/constants/apartment';
+import { useAuth } from '@/context/auth-context';
 import { formatFullDate } from '@/lib/date';
-import { deleteAnnouncement, subscribeToAnnouncement } from '@/services/announcements';
+import { markAnnouncementReadLocally } from '@/lib/read-announcements';
+import {
+  deleteAnnouncement,
+  recordAnnouncementRead,
+  subscribeToAnnouncement,
+  subscribeToAnnouncementReaders,
+} from '@/services/announcements';
 import type { Announcement } from '@/types/announcement';
 
 interface AnnouncementDetailScreenProps {
@@ -25,15 +35,32 @@ export function AnnouncementDetailScreen({ id, onEdit }: AnnouncementDetailScree
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { profile } = useAuth();
+  const canManage = Boolean(onEdit);
+  const [readers, setReaders] = useState<number[]>([]);
+
   useEffect(
     () => subscribeToAnnouncement(id, setAnnouncement, () => setError('Duyuru yüklenemedi.')),
     [id],
   );
 
+  // Açılan duyuru bu telefonda "okundu" sayılır; yöneticinin göreceği okunma kaydı da yazılır.
+  const loaded = Boolean(announcement);
+  useEffect(() => {
+    if (!loaded || !profile) return;
+    markAnnouncementReadLocally(id);
+    void recordAnnouncementRead(id, profile);
+  }, [id, loaded, profile]);
+
+  useEffect(() => {
+    if (!canManage) return;
+    return subscribeToAnnouncementReaders(id, setReaders, () => undefined);
+  }, [id, canManage]);
+
   if ((announcement === undefined && !error) || (!announcement && deleting)) {
     return (
       <Screen edges={['bottom']}>
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <SkeletonList />
       </Screen>
     );
   }
@@ -100,6 +127,35 @@ export function AnnouncementDetailScreen({ id, onEdit }: AnnouncementDetailScree
         </Text>
       </Card>
 
+      {canManage ? (
+        <Card style={styles.readers}>
+          <View style={styles.readersHeader}>
+            <Text style={[typography.label, styles.flex, { color: colors.textMuted }]}>OKUYAN DAİRELER</Text>
+            <Text style={[typography.bodyStrong, { color: colors.text }]}>
+              {readers.length}/{APARTMENT_NUMBERS.length}
+            </Text>
+          </View>
+          <View style={styles.apartments}>
+            {APARTMENT_NUMBERS.map((no) => {
+              const read = readers.includes(no);
+              return (
+                <View
+                  key={no}
+                  accessible
+                  accessibilityLabel={`Daire ${no}: ${read ? 'okudu' : 'henüz okumadı'}`}
+                  style={[styles.apartment, { backgroundColor: read ? colors.successSoft : colors.surfaceMuted }]}>
+                  <Text style={[styles.apartmentText, { color: read ? colors.success : colors.textMuted }]}>{no}</Text>
+                  {read ? <Ionicons name="checkmark" size={12} color={colors.success} /> : null}
+                </View>
+              );
+            })}
+          </View>
+          <Text style={[typography.caption, { color: colors.textMuted }]}>
+            Duyuruyu uygulamada açan daireler yeşil görünür.
+          </Text>
+        </Card>
+      ) : null}
+
       {error ? <Notice tone="danger" message={error} /> : null}
 
       {onEdit ? (
@@ -119,8 +175,32 @@ export function AnnouncementDetailScreen({ id, onEdit }: AnnouncementDetailScree
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   loading: {
     marginTop: spacing.xl,
+  },
+  readers: {
+    gap: spacing.md,
+  },
+  readersHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  apartments: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  apartment: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  apartmentText: {
+    fontSize: 16,
+    fontWeight: '700',
   },
   card: {
     gap: spacing.sm,

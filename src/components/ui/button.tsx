@@ -1,8 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ComponentProps } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { radius, spacing, useThemeColors } from '@/constants/theme';
+import { tapFeedback } from '@/lib/haptics';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -37,7 +39,10 @@ export function Button({
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
-      onPress={onPress}
+      onPress={() => {
+        tapFeedback();
+        onPress();
+      }}
       disabled={isDisabled}
       style={({ pressed }) => [
         styles.base,
@@ -59,7 +64,7 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 52,
+    minHeight: 54,
     borderRadius: radius.md,
     borderWidth: 1,
     paddingHorizontal: spacing.md,

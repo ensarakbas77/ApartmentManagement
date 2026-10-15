@@ -41,9 +41,15 @@ service cloud.firestore {
       return role in ['manager', 'resident'];
     }
 
+    // Telefon isteğe bağlıdır: boş ya da 3-15 rakam (başta + olabilir).
+    function isValidPhone(phone) {
+      return phone is string && (phone == '' || phone.matches('^[+]?[0-9]{3,15}$'));
+    }
+
     function isValidNewUser(data) {
-      return data.keys().hasOnly(['username', 'displayName', 'role', 'apartmentNo', 'createdAt'])
+      return data.keys().hasOnly(['username', 'displayName', 'role', 'apartmentNo', 'phone', 'createdAt'])
         && data.keys().hasAll(['username', 'displayName', 'role', 'apartmentNo'])
+        && (!('phone' in data) || isValidPhone(data.phone))
         && data.username is string && data.username.matches('^[a-z0-9._-]{3,30}$')
         && data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 60
         && isAssignableRole(data.role)
@@ -51,7 +57,7 @@ service cloud.firestore {
     }
 
     // users/{userId}: döküman kimliği = Firebase Auth uid
-    // Alanlar: username, displayName, role ('admin' | 'manager' | 'resident'), apartmentNo, createdAt
+    // Alanlar: username, displayName, role ('admin' | 'manager' | 'resident'), apartmentNo, phone, createdAt
     match /users/{userId} {
       // Herkes kendi profilini; admin ve yönetici tüm profilleri okuyabilir.
       allow read: if isSignedIn() && (request.auth.uid == userId || isManagerOrAdmin());
@@ -59,13 +65,19 @@ service cloud.firestore {
       // Sadece admin, geçerli alanlarla sakin/yönetici oluşturabilir.
       allow create: if isAdmin() && isValidNewUser(request.resource.data);
 
-      // Sadece admin, başka bir (admin olmayan) kullanıcının rolünü değiştirebilir.
+      // Admin, başka bir (admin olmayan) kullanıcının rolünü veya telefonunu değiştirebilir.
       // Kimse kendi rolünü değiştiremez; admin kendini kilitleyemez.
-      allow update: if isAdmin()
-        && userId != request.auth.uid
-        && isAssignableRole(resource.data.role)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
-        && isAssignableRole(request.resource.data.role);
+      // Herkes kendi profilinde sadece telefonunu güncelleyebilir.
+      allow update: if (isAdmin()
+          && userId != request.auth.uid
+          && isAssignableRole(resource.data.role)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'phone'])
+          && isAssignableRole(request.resource.data.role)
+          && (!('phone' in request.resource.data) || isValidPhone(request.resource.data.phone)))
+        || (isSignedIn()
+          && userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phone'])
+          && isValidPhone(request.resource.data.phone));
 
       // Sadece admin, kendisi ve diğer adminler hariç kullanıcıları silebilir.
       allow delete: if isAdmin()
@@ -100,6 +112,76 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
 
       allow delete: if isManager();
+
+      // announcements/{id}/reads/{uid}: duyuruyu açan kullanıcının dairesi. Sadece yönetici okur.
+      match /reads/{readerId} {
+        allow read: if isManagerOrAdmin();
+
+        allow create, update: if hasProfile()
+          && readerId == request.auth.uid
+          && me().apartmentNo is int
+          && request.resource.data.keys().hasOnly(['apartmentNo', 'readAt'])
+          && request.resource.data.apartmentNo == me().apartmentNo
+          && request.resource.data.readAt == request.time;
+
+        allow delete: if isManager();
+      }
+    }
+
+    // settings/apartment: apartmanın ödeme bilgileri (IBAN vb.). Herkes okur, yönetici yazar.
+    match /settings/{settingId} {
+      allow read: if hasProfile();
+
+      allow write: if isManager()
+        && settingId == 'apartment'
+        && request.resource.data.keys().hasOnly(['iban', 'accountHolder', 'bankName', 'updatedAt'])
+        && request.resource.data.iban is string
+        && (request.resource.data.iban == '' || request.resource.data.iban.matches('^TR[0-9]{24}$'))
+        && request.resource.data.accountHolder is string && request.resource.data.accountHolder.size() <= 80
+        && request.resource.data.bankName is string && request.resource.data.bankName.size() <= 60
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // contacts/{id}: önemli numaralar rehberi. Herkes okur, yönetici yazar.
+    // Alanlar: name, role, phone, createdAt, updatedAt
+    match /contacts/{contactId} {
+      function isValidContact(data) {
+        return data.name is string && data.name.size() > 0 && data.name.size() <= 60
+          && data.role is string && data.role.size() > 0 && data.role.size() <= 60
+          && data.phone is string && data.phone.matches('^[+]?[0-9]{3,15}$');
+      }
+
+      allow read: if hasProfile();
+
+      allow create: if isManager()
+        && request.resource.data.keys().hasOnly(['name', 'role', 'phone', 'createdAt'])
+        && isValidContact(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isManager()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'role', 'phone', 'updatedAt'])
+        && isValidContact(request.resource.data)
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if isManager();
+    }
+
+    // reports/{year}: yönetici tarafından yayınlanan yıllık gelir-gider özeti. Herkes okur.
+    match /reports/{reportId} {
+      allow read: if hasProfile();
+
+      allow write: if isManager()
+        && request.resource.data.keys().hasOnly(['year', 'totalIncome', 'totalExpense', 'monthly', 'categories', 'paidDues', 'totalDues', 'publishedBy', 'publishedAt'])
+        && request.resource.data.year is int
+        && reportId == string(request.resource.data.year)
+        && request.resource.data.totalIncome is number
+        && request.resource.data.totalExpense is number
+        && request.resource.data.monthly is list && request.resource.data.monthly.size() == 12
+        && request.resource.data.categories is map
+        && request.resource.data.paidDues is int
+        && request.resource.data.totalDues is int
+        && request.resource.data.publishedBy is string
+        && request.resource.data.publishedAt == request.time;
     }
 
     // duePeriods/{periodId}: aylık aidat dönemi. periodId = "2026-10"
@@ -242,7 +324,7 @@ service cloud.firestore {
         && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 100
         && request.resource.data.description is string && request.resource.data.description.size() <= 1000
         && request.resource.data.location is string && request.resource.data.location.size() <= 100
-        && request.resource.data.category in ['elevator', 'lighting', 'plumbing', 'heating', 'cleaning', 'common_area', 'other']
+        && request.resource.data.category in ['elevator', 'lighting', 'plumbing', 'heating', 'cleaning', 'common_area', 'parking', 'other']
         && request.resource.data.status == 'open'
         && request.resource.data.apartmentNo == me().apartmentNo
         && request.resource.data.reporterUid == request.auth.uid

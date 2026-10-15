@@ -1,26 +1,30 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { StatusBar } from 'expo-status-bar';
 import { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   type TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Notice } from '@/components/ui/notice';
+import { Text } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
+import { APARTMENT_NAME } from '@/constants/apartment';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { getAuthErrorMessage } from '@/lib/auth-errors';
 
 export default function LoginScreen() {
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const { signIn, loadingProfile, profileError } = useAuth();
   const passwordRef = useRef<TextInput>(null);
 
@@ -51,72 +55,81 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <View style={styles.brand}>
-            <View style={[styles.logo, { backgroundColor: colors.primary }]}>
-              <Ionicons name="business" size={36} color={colors.primaryText} />
-            </View>
-            <Text style={[typography.largeTitle, { color: colors.text }]}>Apartman Yönetimi</Text>
-            <Text style={[typography.body, { color: colors.textMuted }]}>
-              Devam etmek için giriş yapın
-            </Text>
+    <View style={[styles.flex, { backgroundColor: colors.background }]}>
+      <StatusBar style="light" />
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={[styles.hero, { backgroundColor: colors.hero, paddingTop: insets.top + spacing.xl }]}>
+            <Animated.View entering={FadeInDown.duration(400)} style={styles.brand}>
+              <View style={[styles.logo, { backgroundColor: colors.heroCard }]}>
+                <Ionicons name="business" size={34} color={colors.heroText} />
+              </View>
+              <Text style={[styles.title, { color: colors.heroText }]}>{APARTMENT_NAME}</Text>
+              <Text style={[typography.body, styles.center, { color: colors.heroMuted }]}>
+                Hoş geldiniz, devam etmek için giriş yapın
+              </Text>
+            </Animated.View>
           </View>
 
-          <Card style={styles.form}>
-            <TextField
-              label="Kullanıcı adı"
-              icon="person-outline"
-              value={username}
-              onChangeText={setUsername}
-              placeholder="örn. daire5"
-              autoComplete="username"
-              textContentType="username"
-              returnKeyType="next"
-              onSubmitEditing={() => passwordRef.current?.focus()}
-              submitBehavior="submit"
-              editable={!busy}
-            />
-            <TextField
-              ref={passwordRef}
-              label="Şifre"
-              icon="lock-closed-outline"
-              password
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Şifreniz"
-              autoComplete="current-password"
-              textContentType="password"
-              returnKeyType="go"
-              onSubmitEditing={handleSubmit}
-              editable={!busy}
-            />
+          <Animated.View entering={FadeInDown.delay(120).duration(400)} style={styles.formWrapper}>
+            <Card style={styles.form}>
+              <TextField
+                label="Kullanıcı adı"
+                icon="person-outline"
+                value={username}
+                onChangeText={setUsername}
+                placeholder="Kullanıcı adınız"
+                autoComplete="username"
+                textContentType="username"
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+                submitBehavior="submit"
+                editable={!busy}
+              />
+              <TextField
+                ref={passwordRef}
+                label="Şifre"
+                icon="lock-closed-outline"
+                password
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Şifreniz"
+                autoComplete="current-password"
+                textContentType="password"
+                returnKeyType="go"
+                onSubmitEditing={handleSubmit}
+                editable={!busy}
+              />
 
-            {message ? <Notice tone="danger" message={message} /> : null}
+              {message ? <Notice tone="danger" message={message} /> : null}
 
-            <Button title="Giriş yap" onPress={handleSubmit} loading={busy} />
-          </Card>
+              <Button title="Giriş yap" icon="arrow-forward" onPress={handleSubmit} loading={busy} />
+            </Card>
 
-          <Text style={[typography.caption, styles.hint, { color: colors.textMuted }]}>
-            Şifrenizi unuttuysanız apartman yöneticisine başvurun.
-          </Text>
+            <Text style={[typography.caption, styles.hint, { color: colors.textMuted }]}>
+              Şifrenizi unuttuysanız apartman yöneticisine başvurun.
+            </Text>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
   flex: { flex: 1 },
   content: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: spacing.lg,
-    gap: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  hero: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl + 48,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
   },
   brand: {
     alignItems: 'center',
@@ -130,11 +143,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+  },
+  formWrapper: {
+    marginTop: -48,
+    paddingHorizontal: spacing.md,
+    gap: spacing.lg,
+  },
   form: {
     gap: spacing.md,
     padding: spacing.lg,
   },
   hint: {
+    textAlign: 'center',
+  },
+  center: {
     textAlign: 'center',
   },
 });

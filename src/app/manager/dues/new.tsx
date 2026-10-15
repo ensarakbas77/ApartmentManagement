@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MonthSwitcher } from '@/components/ui/month-switcher';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
+import { Text } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
 import { APARTMENT_COUNT } from '@/constants/apartment';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
