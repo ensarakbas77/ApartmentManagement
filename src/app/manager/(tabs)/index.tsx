@@ -27,7 +27,12 @@ export default function ManagerHome() {
       icon: 'stats-chart-outline',
       onPress: () => router.navigate('/manager/polls'),
     },
-    { title: 'Giderler', description: 'Harcamaları ve faturaları paylaş.', icon: 'receipt-outline' },
+    {
+      title: 'Giderler',
+      description: 'Harcamaları gir, kasa bakiyesini gör.',
+      icon: 'receipt-outline',
+      onPress: () => router.push('/manager/expenses'),
+    },
   ];
 
   return (

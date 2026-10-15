@@ -21,7 +21,12 @@ const FEATURES: HomeFeature[] = [
     icon: 'stats-chart-outline',
     onPress: () => router.navigate('/resident/polls'),
   },
-  { title: 'Giderler', description: 'Aidatlar nereye harcandı?', icon: 'receipt-outline' },
+  {
+    title: 'Giderler',
+    description: 'Aidatlar nereye harcandı?',
+    icon: 'receipt-outline',
+    onPress: () => router.push('/resident/expenses'),
+  },
 ];
 
 export default function ResidentHome() {

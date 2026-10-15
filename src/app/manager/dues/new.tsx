@@ -1,19 +1,19 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { MonthSwitcher } from '@/components/ui/month-switcher';
 import { Notice } from '@/components/ui/notice';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { APARTMENT_COUNT } from '@/constants/apartment';
-import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
+import { spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { formatMoney, parseMoney } from '@/lib/money';
 import { createPeriod, DuesError, MAX_DUE_AMOUNT, subscribeToPeriods } from '@/services/dues';
-import { formatPeriod, toPeriodId, type DuePeriod } from '@/types/dues';
+import { toPeriodId, type DuePeriod } from '@/types/dues';
 
 export default function NewDuePeriodScreen() {
   const colors = useThemeColors();
@@ -42,10 +42,9 @@ export default function NewDuePeriodScreen() {
   const alreadyExists = existingIds.has(toPeriodId(year, month));
   const amount = parseMoney(amountText);
 
-  function shiftMonth(delta: number) {
-    const date = new Date(year, month - 1 + delta, 1);
-    setYear(date.getFullYear());
-    setMonth(date.getMonth() + 1);
+  function changeMonth(nextYear: number, nextMonth: number) {
+    setYear(nextYear);
+    setMonth(nextMonth);
     setError(null);
   }
 
@@ -70,13 +69,7 @@ export default function NewDuePeriodScreen() {
     <Screen edges={['bottom']}>
       <Card style={styles.section}>
         <Text style={[typography.label, { color: colors.textMuted }]}>DÖNEM</Text>
-        <View style={styles.monthPicker}>
-          <MonthArrow icon="chevron-back" label="Önceki ay" onPress={() => shiftMonth(-1)} />
-          <Text style={[typography.title, styles.monthText, { color: colors.text }]}>
-            {formatPeriod(year, month)}
-          </Text>
-          <MonthArrow icon="chevron-forward" label="Sonraki ay" onPress={() => shiftMonth(1)} />
-        </View>
+        <MonthSwitcher year={year} month={month} onChange={changeMonth} />
         {alreadyExists ? (
           <Notice tone="warning" message="Bu ay için aidat dönemi zaten açılmış." />
         ) : null}
@@ -122,51 +115,9 @@ export default function NewDuePeriodScreen() {
   );
 }
 
-function MonthArrow({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: 'chevron-back' | 'chevron-forward';
-  label: string;
-  onPress: () => void;
-}) {
-  const colors = useThemeColors();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress}
-      hitSlop={8}
-      style={({ pressed }) => [
-        styles.arrow,
-        { backgroundColor: colors.surfaceMuted },
-        pressed && { opacity: 0.7 },
-      ]}>
-      <Ionicons name={icon} size={22} color={colors.text} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   bold: { fontWeight: '700' },
   section: {
     gap: spacing.md,
-  },
-  monthPicker: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  monthText: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  arrow: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
