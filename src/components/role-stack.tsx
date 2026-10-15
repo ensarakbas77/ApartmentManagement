@@ -21,6 +21,7 @@ export function RoleStack({ children }: { children?: ReactNode }) {
         headerBackTitle: 'Geri',
       }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="change-password" options={{ title: 'Şifre değiştir' }} />
       {children}
     </Stack>
   );
