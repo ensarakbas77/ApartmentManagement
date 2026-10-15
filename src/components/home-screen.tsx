@@ -15,6 +15,8 @@ export interface HomeFeature {
   title: string;
   description: string;
   icon: ComponentProps<typeof Ionicons>['name'];
+  /** Verilmezse özellik henüz hazır değildir ve "Yakında" etiketi gösterilir. */
+  onPress?: () => void;
 }
 
 interface HomeScreenProps {
@@ -44,20 +46,37 @@ export function HomeScreen({ features, onOpenAnnouncement, onOpenAnnouncements }
 
       {features.length > 0 ? (
         <View style={styles.grid}>
-          {features.map((feature) => (
-            <Card key={feature.title} style={styles.tile}>
-              <View style={[styles.iconCircle, { backgroundColor: colors.primarySoft }]}>
-                <Ionicons name={feature.icon} size={22} color={colors.primary} />
-              </View>
-              <Text style={[typography.bodyStrong, { color: colors.text }]}>{feature.title}</Text>
-              <Text style={[typography.caption, { color: colors.textMuted }]} numberOfLines={2}>
-                {feature.description}
-              </Text>
-              <View style={[styles.soon, { backgroundColor: colors.surfaceMuted }]}>
-                <Text style={[styles.soonText, { color: colors.textMuted }]}>Yakında</Text>
-              </View>
-            </Card>
-          ))}
+          {features.map((feature) => {
+            const ready = Boolean(feature.onPress);
+            return (
+              <Pressable
+                key={feature.title}
+                accessibilityRole="button"
+                accessibilityLabel={ready ? feature.title : `${feature.title}, yakında`}
+                accessibilityState={{ disabled: !ready }}
+                disabled={!ready}
+                onPress={feature.onPress}
+                style={({ pressed }) => [styles.tile, pressed && styles.pressed]}>
+                <Card style={[styles.tileCard, !ready && styles.tileDisabled]}>
+                  <View style={styles.tileHeader}>
+                    <View style={[styles.iconCircle, { backgroundColor: colors.primarySoft }]}>
+                      <Ionicons name={feature.icon} size={22} color={colors.primary} />
+                    </View>
+                    {ready ? <Ionicons name="arrow-forward" size={18} color={colors.textMuted} /> : null}
+                  </View>
+                  <Text style={[typography.bodyStrong, { color: colors.text }]}>{feature.title}</Text>
+                  <Text style={[typography.caption, { color: colors.textMuted }]} numberOfLines={2}>
+                    {feature.description}
+                  </Text>
+                  {!ready ? (
+                    <View style={[styles.soon, { backgroundColor: colors.surfaceMuted }]}>
+                      <Text style={[styles.soonText, { color: colors.textMuted }]}>Yakında</Text>
+                    </View>
+                  ) : null}
+                </Card>
+              </Pressable>
+            );
+          })}
         </View>
       ) : null}
     </Screen>
@@ -167,7 +186,18 @@ const styles = StyleSheet.create({
   },
   tile: {
     width: '48%',
+  },
+  tileCard: {
+    flex: 1,
     gap: spacing.sm,
+  },
+  tileDisabled: {
+    opacity: 0.65,
+  },
+  tileHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   iconCircle: {
     width: 44,

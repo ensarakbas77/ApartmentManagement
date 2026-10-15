@@ -10,8 +10,13 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Giriş yapan kullanıcının users/{uid} dökümanı.
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function currentRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return me().role;
     }
 
     function isAdmin() {
@@ -93,6 +98,56 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'body', 'important', 'updatedAt'])
         && isValidAnnouncementContent(request.resource.data)
         && request.resource.data.updatedAt == request.time;
+
+      allow delete: if isManager();
+    }
+
+    // duePeriods/{periodId}: aylık aidat dönemi. periodId = "2026-10"
+    // Alanlar: year, month, amount, createdBy, createdAt
+    match /duePeriods/{periodId} {
+      allow read: if hasProfile();
+
+      allow create: if isManager()
+        && request.resource.data.keys().hasOnly(['year', 'month', 'amount', 'createdBy', 'createdAt'])
+        && request.resource.data.year is int && request.resource.data.year >= 2020 && request.resource.data.year <= 2100
+        && request.resource.data.month is int && request.resource.data.month >= 1 && request.resource.data.month <= 12
+        && request.resource.data.amount is number && request.resource.data.amount > 0 && request.resource.data.amount <= 1000000
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+
+      // Dönem açıldıktan sonra değiştirilemez; yanlışsa silinip yeniden açılır.
+      allow update: if false;
+      allow delete: if isManager();
+    }
+
+    // dues/{periodId}_{apartmentNo}: bir dairenin bir aylık aidatı.
+    // Alanlar: periodId, year, month, apartmentNo, amount, paid, paidAt, method
+    match /dues/{dueId} {
+      // Yönetici ve admin tüm daireleri; sakin sadece kendi dairesini görür.
+      allow read: if isManagerOrAdmin()
+        || (hasProfile() && resource.data.apartmentNo == me().apartmentNo);
+
+      allow create: if isManager()
+        && request.resource.data.keys().hasOnly(['periodId', 'year', 'month', 'apartmentNo', 'amount', 'paid', 'paidAt', 'method'])
+        && request.resource.data.apartmentNo is int
+        && request.resource.data.apartmentNo >= 1 && request.resource.data.apartmentNo <= 9
+        && dueId == request.resource.data.periodId + '_' + string(request.resource.data.apartmentNo)
+        && request.resource.data.amount is number && request.resource.data.amount > 0
+        && request.resource.data.paid == false
+        && request.resource.data.paidAt == null
+        && request.resource.data.method == null;
+
+      // Yönetici sadece ödeme durumunu değiştirebilir.
+      allow update: if isManager()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paid', 'paidAt', 'method'])
+        && (
+          (request.resource.data.paid == true
+            && request.resource.data.method in ['cash', 'transfer']
+            && request.resource.data.paidAt == request.time)
+          || (request.resource.data.paid == false
+            && request.resource.data.method == null
+            && request.resource.data.paidAt == null)
+        );
 
       allow delete: if isManager();
     }

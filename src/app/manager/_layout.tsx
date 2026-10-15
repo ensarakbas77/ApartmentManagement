@@ -7,6 +7,8 @@ export default function ManagerLayout() {
     <RoleStack>
       <Stack.Screen name="announcements/compose" options={{ title: 'Yeni duyuru', presentation: 'modal' }} />
       <Stack.Screen name="announcements/[id]" options={{ title: 'Duyuru' }} />
+      <Stack.Screen name="dues/new" options={{ title: 'Yeni aidat dönemi', presentation: 'modal' }} />
+      <Stack.Screen name="dues/[periodId]" options={{ title: 'Aidat dönemi' }} />
     </RoleStack>
   );
 }
