@@ -1,56 +1,168 @@
-# Welcome to your Expo app 👋
+# Sürur Apartmanı · Apartman Yönetimi
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+9 daireli bir apartman için geliştirilmiş mobil yönetim uygulaması. Aidat takibi, duyurular, arıza bildirimleri, anketler ve giderler tek bir yerde; yönetici ile sakinler arasındaki iletişim şeffaf ve kayıt altında.
 
-## Get started
+Uygulama mağazaya yüklenmez; Android cihazlara APK olarak dağıtılır. Tamamen **Firebase'in ücretsiz (Spark) planında** çalışır.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## Özellikler
 
-2. Start the app
+### Roller
 
-   ```bash
-   npx expo start
-   ```
+| Rol | Kim | Yetkiler |
+|---|---|---|
+| **Admin** | Uygulamanın sahibi | Kullanıcı ekler/siler, rol ve telefon atar |
+| **Yönetici** | Apartman yöneticisi | Duyuru, aidat, gider, anket, rehber ve raporları yönetir; talepleri sonuçlandırır |
+| **Sakin** | Daire sakinleri | Görüntüler, arıza bildirir, oy kullanır |
 
-In the output, you'll find options to open the app in a
+Roller yalnızca arayüzde değil, **Firestore güvenlik kurallarında** da zorunlu kılınır.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Modüller
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **Giriş** — Kullanıcı adı ve şifre ile (e-posta gerekmez). Herkes kendi şifresini ve telefonunu değiştirebilir.
+- **Ana sayfa (özet panosu)** — Kişiye özel durum: ödenmemiş aidat ya da bu ayın tahsilatı, "Sizi bekleyenler" listesi, son duyuru ve hızlı erişim.
+- **Duyurular** — Yönetici yayınlar, "önemli" olarak işaretleyebilir. Sakinler okunmamış duyuruları rozetle görür; yönetici hangi dairelerin okuduğunu takip eder.
+- **Aidat takibi** — Aylık dönem açılır, 9 daire için kayıt oluşur. Ödemeler Nakit/EFT olarak işaretlenir. Sakin yalnızca kendi dairesinin borcunu görür. IBAN kartı ve tek dokunuşla kopyalama; ödemeyen daireye WhatsApp hatırlatması.
+- **Giderler** — Ay ay harcamalar, kategori dağılımı ve yönetici için kasa bakiyesi.
+- **Yıllık rapor** — Gelir-gider özeti, aylık grafik ve tahsilat oranı. Yönetici yayınlar, sakinler görür.
+- **Arıza ve istekler** — Kategori ve yer bilgisiyle bildirim; *Açık → İşlemde → Çözüldü* süreci, yönetici notları ve geçmiş.
+- **Anketler** — Daire başına tek ve gizli oy; yüzdeli sonuçlar ve katılım takibi.
+- **Önemli numaralar** — Yönetici, asansör firması, tesisatçı gibi numaralar; dokununca arama.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Teknolojiler
 
-```bash
-npm run reset-project
+| Alan | Kullanılan |
+|---|---|
+| Uygulama | [Expo SDK 57](https://docs.expo.dev), React Native 0.86, React 19, TypeScript |
+| Yönlendirme | Expo Router (dosya tabanlı, `Stack.Protected` ile rol koruması) |
+| Arka uç | Firebase Authentication, Cloud Firestore |
+| Arayüz | Kendi bileşen seti, Plus Jakarta Sans, Ionicons, Reanimated |
+
+---
+
+## Proje yapısı
+
+```
+src/
+├── app/                  # Ekranlar (Expo Router)
+│   ├── _layout.tsx       # Kök: oturum, yazı tipleri ve rol koruması
+│   ├── login.tsx
+│   ├── admin/            # Admin: kullanıcı yönetimi
+│   ├── manager/          # Yönetici ekranları
+│   └── resident/         # Sakin ekranları
+├── components/           # Ortak ekranlar ve arayüz bileşenleri (ui/)
+├── config/firebase.ts    # Firebase bağlantısı
+├── constants/            # Tema, apartman adı ve daire sayısı
+├── context/              # Oturum ve profil (AuthProvider)
+├── hooks/                # Ana sayfa özetleri, okunmamış duyurular vb.
+├── lib/                  # Yardımcılar: para, tarih, telefon, titreşim
+├── services/             # Firestore işlemleri (koleksiyon başına bir dosya)
+└── types/                # Veri tipleri
+firestore.rules           # Firestore güvenlik kuralları
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## Kurulum
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### Gereksinimler
 
-## Learn more
+- Node.js 20 veya üzeri
+- Android telefonda [Expo Go](https://play.google.com/store/apps/details?id=host.exp.exponent) (geliştirme için)
+- Bir Firebase projesi
 
-To learn more about developing your project with Expo, look at the following resources:
+### 1. Firebase projesi
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. [Firebase Console](https://console.firebase.google.com)'da yeni bir proje oluşturun.
+2. **Authentication → Sign-in method** bölümünde **Email/Password**'ü etkinleştirin.
+3. **Firestore Database** oluşturun (konum: `eur3`, mod: production).
+4. **Project settings → Your apps** bölümünden bir **Web** uygulaması kaydedip yapılandırma değerlerini alın.
+5. **Firestore → Rules** sekmesine [`firestore.rules`](firestore.rules) içeriğini yapıştırıp yayınlayın.
 
-## Join the community
+### 2. Ortam değişkenleri
 
-Join our community of developers creating universal apps.
+```bash
+cp .env.example .env
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+`.env` dosyasını Firebase web uygulamasının değerleriyle doldurun. Bu dosya git'e eklenmez.
+
+### 3. Çalıştırma
+
+```bash
+npm install
+npx expo start
+```
+
+Terminaldeki QR kodu Expo Go ile okutun.
+
+### 4. İlk admin hesabı
+
+Uygulama içinden kullanıcı oluşturmak için önce bir admin gerekir; bu hesap bir kez Firebase Console'dan elle açılır:
+
+1. **Authentication → Users → Add user**: e-posta `kullaniciadi@apartman.local`, bir şifre.
+2. **Firestore → `users` koleksiyonu**, döküman kimliği = kullanıcının **UID**'si:
+
+   | Alan | Tür | Değer |
+   |---|---|---|
+   | `username` | string | `kullaniciadi` |
+   | `displayName` | string | Ad Soyad |
+   | `role` | string | `admin` |
+   | `apartmentNo` | null | — |
+
+Sonraki tüm kullanıcılar uygulamadaki admin panelinden eklenir.
+
+> Kullanıcı adları arka planda `kullaniciadi@apartman.local` biçimine çevrilir. Bu adrese hiçbir zaman e-posta gönderilmez; alan adı gerekmez.
+
+---
+
+## Veri modeli
+
+| Koleksiyon | İçerik | Okuma | Yazma |
+|---|---|---|---|
+| `users/{uid}` | Profil, rol, daire, telefon | Kendisi, yönetici, admin | Admin (kişi kendi telefonunu) |
+| `announcements/{id}` | Duyurular | Herkes | Yönetici |
+| `announcements/{id}/reads/{uid}` | Okunma kayıtları | Yönetici | Kişinin kendisi |
+| `duePeriods/{yyyy-mm}` | Aylık aidat dönemleri | Herkes | Yönetici |
+| `dues/{yyyy-mm}_{daire}` | Daire bazlı aidat | Yönetici, ilgili daire | Yönetici |
+| `expenses/{id}` | Giderler | Herkes | Yönetici |
+| `reports/{yıl}` | Yıllık özet | Herkes | Yönetici |
+| `issues/{id}` | Arıza ve istekler | Herkes | Sakin oluşturur, yönetici günceller |
+| `polls/{id}` · `votes/{daire}` | Anketler ve gizli oylar | Herkes · ilgili daire | Yönetici · daire tek oy |
+| `contacts/{id}` | Önemli numaralar | Herkes | Yönetici |
+| `settings/apartment` | IBAN ve hesap bilgisi | Herkes | Yönetici |
+
+"Herkes", profili olan giriş yapmış kullanıcıları ifade eder.
+
+---
+
+## Güvenlik
+
+- Yetkiler [`firestore.rules`](firestore.rules) içinde sunucu tarafında denetlenir; arayüzdeki gizleme yalnızca kolaylık içindir.
+- Kimse kendi rolünü değiştiremez, admin kendini silemez.
+- Sakin başka bir dairenin aidat kaydını ve anket oyunu okuyamaz.
+- Anket oyu, oy kaydı ile sayaç aynı işlemde yazılır; kurallar ikisinin tutarlılığını ve daire başına tek oyu zorunlu kılar.
+- Firebase web yapılandırma değerleri gizli değildir; asıl koruma güvenlik kurallarıdır. Yine de `.env` git'e eklenmez.
+
+---
+
+## Geliştirme
+
+```bash
+npm run typecheck                         # TypeScript kontrolü
+npx expo export --platform android        # Android paketini derleyip doğrular
+```
+
+Apartman adı ve daire sayısı [`src/constants/apartment.ts`](src/constants/apartment.ts) içinden değiştirilir.
+
+---
+
+## Yol haritası
+
+- [ ] İlk girişte zorunlu şifre değişikliği
+- [ ] APK dağıtımı (EAS Build) ve uzaktan güncelleme (EAS Update)
+- [ ] Bildirimler (duyuru, anket, talep güncellemesi)
+- [ ] iPhone kullanıcıları için web sürümü
