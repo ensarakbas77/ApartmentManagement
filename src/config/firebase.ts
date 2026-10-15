@@ -33,7 +33,7 @@ if (missingKeys.length > 0) {
 }
 
 // Hızlı yenileme (fast refresh) sırasında uygulamanın iki kez başlatılmasını engelle.
-const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 function createAuth(): Auth {
   if (Platform.OS === 'web') {

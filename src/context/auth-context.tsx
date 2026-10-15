@@ -18,7 +18,8 @@ import {
 
 import { auth, db } from '@/config/firebase';
 import { usernameToEmail } from '@/lib/username';
-import { isUserRole, type UserProfile } from '@/types/user';
+import { toUserProfile } from '@/services/users';
+import type { UserProfile } from '@/types/user';
 
 interface AuthContextValue {
   /** Firebase Auth kullanıcısı (oturum açık mı?). */
@@ -64,9 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profileUnsubscribe.current = onSnapshot(
         doc(db, 'users', firebaseUser.uid),
         (snapshot) => {
-          const data = snapshot.data();
+          const nextProfile = toUserProfile(snapshot);
 
-          if (!snapshot.exists() || !data || !isUserRole(data.role)) {
+          if (!nextProfile) {
             setProfile(null);
             setProfileError('Hesabınız için rol tanımlanmamış. Lütfen yöneticiye başvurun.');
             setInitializing(false);
@@ -74,14 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
-          setProfile({
-            uid: snapshot.id,
-            username: String(data.username ?? ''),
-            displayName: String(data.displayName ?? data.username ?? ''),
-            role: data.role,
-            apartmentNo: typeof data.apartmentNo === 'number' ? data.apartmentNo : null,
-            createdAt: data.createdAt,
-          });
+          setProfile(nextProfile);
           setProfileError(null);
           setInitializing(false);
         },

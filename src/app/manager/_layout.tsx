@@ -1,5 +1,5 @@
-import { Stack } from 'expo-router';
+import { RoleStack } from '@/components/role-stack';
 
 export default function ManagerLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <RoleStack />;
 }
