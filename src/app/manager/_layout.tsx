@@ -11,6 +11,9 @@ export default function ManagerLayout() {
       <Stack.Screen name="dues/[periodId]" options={{ title: 'Aidat dönemi' }} />
       <Stack.Screen name="polls/new" options={{ title: 'Yeni anket', presentation: 'modal' }} />
       <Stack.Screen name="polls/[id]" options={{ title: 'Anket' }} />
+      <Stack.Screen name="issues/index" options={{ title: 'Arıza ve istekler' }} />
+      <Stack.Screen name="issues/new" options={{ title: 'Arıza / istek bildir', presentation: 'modal' }} />
+      <Stack.Screen name="issues/[id]" options={{ title: 'Talep' }} />
     </RoleStack>
   );
 }

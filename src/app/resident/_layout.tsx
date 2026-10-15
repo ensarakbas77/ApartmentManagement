@@ -7,6 +7,9 @@ export default function ResidentLayout() {
     <RoleStack>
       <Stack.Screen name="announcements/[id]" options={{ title: 'Duyuru' }} />
       <Stack.Screen name="polls/[id]" options={{ title: 'Anket' }} />
+      <Stack.Screen name="issues/index" options={{ title: 'Arıza ve istekler' }} />
+      <Stack.Screen name="issues/new" options={{ title: 'Arıza / istek bildir', presentation: 'modal' }} />
+      <Stack.Screen name="issues/[id]" options={{ title: 'Talep' }} />
     </RoleStack>
   );
 }

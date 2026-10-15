@@ -228,6 +228,40 @@ service cloud.firestore {
       }
     }
 
+    // issues/{id}: sakinin bildirdiği arıza veya istek. Şeffaflık için tüm sakinlere açıktır.
+    // Alanlar: title, description, category, location, status, apartmentNo, reporterUid,
+    //          reporterName, managerNote, createdAt, updatedAt, resolvedAt
+    match /issues/{issueId} {
+      allow read: if hasProfile();
+
+      // Dairesi olan herkes kendi adına "açık" talep oluşturabilir.
+      allow create: if hasProfile()
+        && me().apartmentNo is int
+        && request.resource.data.keys().hasOnly(['title', 'description', 'category', 'location', 'status', 'apartmentNo', 'reporterUid', 'reporterName', 'managerNote', 'createdAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 100
+        && request.resource.data.description is string && request.resource.data.description.size() <= 1000
+        && request.resource.data.location is string && request.resource.data.location.size() <= 100
+        && request.resource.data.category in ['elevator', 'lighting', 'plumbing', 'heating', 'cleaning', 'common_area', 'other']
+        && request.resource.data.status == 'open'
+        && request.resource.data.apartmentNo == me().apartmentNo
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.reporterName is string
+        && request.resource.data.managerNote == ''
+        && request.resource.data.createdAt == request.time;
+
+      // Sadece yönetici durumu ve notu günceller; talebin içeriği değiştirilemez.
+      allow update: if isManager()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'managerNote', 'updatedAt', 'resolvedAt'])
+        && request.resource.data.status in ['open', 'in_progress', 'resolved']
+        && request.resource.data.managerNote is string && request.resource.data.managerNote.size() <= 500
+        && request.resource.data.updatedAt == request.time;
+
+      // Yönetici her talebi; bildiren kişi kendi talebini henüz "açık" iken silebilir.
+      allow delete: if isManager()
+        || (hasProfile() && resource.data.reporterUid == request.auth.uid && resource.data.status == 'open');
+    }
+
     // Listede olmayan her şey varsayılan olarak kapalı.
     match /{document=**} {
       allow read, write: if false;

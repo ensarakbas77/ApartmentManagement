@@ -17,6 +17,8 @@ export interface HomeFeature {
   icon: ComponentProps<typeof Ionicons>['name'];
   /** Verilmezse özellik henüz hazır değildir ve "Yakında" etiketi gösterilir. */
   onPress?: () => void;
+  /** Sıfırdan büyükse kutucukta rozet olarak gösterilir (örn. bekleyen talep sayısı). */
+  badge?: number;
 }
 
 interface HomeScreenProps {
@@ -62,7 +64,13 @@ export function HomeScreen({ features, onOpenAnnouncement, onOpenAnnouncements }
                     <View style={[styles.iconCircle, { backgroundColor: colors.primarySoft }]}>
                       <Ionicons name={feature.icon} size={22} color={colors.primary} />
                     </View>
-                    {ready ? <Ionicons name="arrow-forward" size={18} color={colors.textMuted} /> : null}
+                    {feature.badge ? (
+                      <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                        <Text style={[styles.badgeText, { color: colors.primaryText }]}>{feature.badge}</Text>
+                      </View>
+                    ) : ready ? (
+                      <Ionicons name="arrow-forward" size={18} color={colors.textMuted} />
+                    ) : null}
                   </View>
                   <Text style={[typography.bodyStrong, { color: colors.text }]}>{feature.title}</Text>
                   <Text style={[typography.caption, { color: colors.textMuted }]} numberOfLines={2}>
@@ -205,6 +213,18 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  badge: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   soon: {
     alignSelf: 'flex-start',
