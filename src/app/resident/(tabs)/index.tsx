@@ -11,7 +11,12 @@ const FEATURES: HomeFeature[] = [
   },
   { title: 'Giderler', description: 'Aidatlar nereye harcandı?', icon: 'receipt-outline' },
   { title: 'Arıza bildir', description: 'Sorunu fotoğrafla yöneticiye ilet.', icon: 'construct-outline' },
-  { title: 'Anketler', description: 'Apartman kararlarında oy kullan.', icon: 'stats-chart-outline' },
+  {
+    title: 'Anketler',
+    description: 'Apartman kararlarında oy kullan.',
+    icon: 'stats-chart-outline',
+    onPress: () => router.navigate('/resident/polls'),
+  },
 ];
 
 export default function ResidentHome() {

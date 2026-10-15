@@ -6,6 +6,7 @@ export default function ResidentLayout() {
   return (
     <RoleStack>
       <Stack.Screen name="announcements/[id]" options={{ title: 'Duyuru' }} />
+      <Stack.Screen name="polls/[id]" options={{ title: 'Anket' }} />
     </RoleStack>
   );
 }

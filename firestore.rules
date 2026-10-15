@@ -152,6 +152,82 @@ service cloud.firestore {
       allow delete: if isManager();
     }
 
+    // polls/{pollId}: anket.
+    // Alanlar: question, description, options [{id, text}], counts {id: sayı},
+    //          votedApartments [daire no], closed, createdBy, authorName, createdAt
+    match /polls/{pollId} {
+      function pollPath() {
+        return /databases/$(database)/documents/polls/$(pollId);
+      }
+
+      function myVotePath() {
+        return /databases/$(database)/documents/polls/$(pollId)/votes/$(string(me().apartmentNo));
+      }
+
+      // Bir dairenin oy verirken anketi güncellemesi: sadece kendi seçtiği seçeneğin sayacı 1 artar
+      // ve daire numarası katılımcılara eklenir. Oy kaydı aynı işlemde yazılmış olmalı.
+      function isValidVoteUpdate() {
+        let apt = me().apartmentNo;
+        let opt = getAfter(myVotePath()).data.optionId;
+        return hasProfile()
+          && apt is int
+          && resource.data.closed == false
+          && !(apt in resource.data.votedApartments)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['counts', 'votedApartments'])
+          && request.resource.data.votedApartments == resource.data.votedApartments.concat([apt])
+          && opt in resource.data.counts
+          && request.resource.data.counts.diff(resource.data.counts).affectedKeys().hasOnly([opt])
+          && request.resource.data.counts[opt] == resource.data.counts[opt] + 1;
+      }
+
+      allow read: if hasProfile();
+
+      allow create: if isManager()
+        && request.resource.data.keys().hasOnly(['question', 'description', 'options', 'counts', 'votedApartments', 'closed', 'createdBy', 'authorName', 'createdAt'])
+        && request.resource.data.question is string
+        && request.resource.data.question.size() > 0 && request.resource.data.question.size() <= 150
+        && request.resource.data.description is string && request.resource.data.description.size() <= 500
+        && request.resource.data.options is list
+        && request.resource.data.options.size() >= 2 && request.resource.data.options.size() <= 5
+        && request.resource.data.counts is map
+        && request.resource.data.counts.size() == request.resource.data.options.size()
+        && request.resource.data.votedApartments == []
+        && request.resource.data.closed == false
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+
+      // Yönetici oylamayı kapatıp açabilir; daireler sadece oy verirken sayacı günceller.
+      allow update: if (isManager()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
+          && request.resource.data.closed is bool)
+        || isValidVoteUpdate();
+
+      allow delete: if isManager();
+
+      // polls/{pollId}/votes/{apartmentNo}: bir dairenin oyu. Gizlidir.
+      match /votes/{voteId} {
+        // Yönetici tüm oyları; daire sadece kendi oyunu okuyabilir.
+        allow read: if isManagerOrAdmin()
+          || (hasProfile() && me().apartmentNo is int && voteId == string(me().apartmentNo));
+
+        // Her daire tek oy: kayıt kimliği daire numarasıdır, sonradan değiştirilemez.
+        allow create: if hasProfile()
+          && me().apartmentNo is int
+          && voteId == string(me().apartmentNo)
+          && request.resource.data.keys().hasOnly(['apartmentNo', 'optionId', 'voterUid', 'createdAt'])
+          && request.resource.data.apartmentNo == me().apartmentNo
+          && request.resource.data.voterUid == request.auth.uid
+          && request.resource.data.createdAt == request.time
+          && get(pollPath()).data.closed == false
+          && !(me().apartmentNo in get(pollPath()).data.votedApartments)
+          && request.resource.data.optionId in get(pollPath()).data.counts
+          && me().apartmentNo in getAfter(pollPath()).data.votedApartments;
+
+        allow update: if false;
+        allow delete: if isManager();
+      }
+    }
+
     // Listede olmayan her şey varsayılan olarak kapalı.
     match /{document=**} {
       allow read, write: if false;

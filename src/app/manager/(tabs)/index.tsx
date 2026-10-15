@@ -11,7 +11,12 @@ const FEATURES: HomeFeature[] = [
   },
   { title: 'Giderler', description: 'Harcamaları ve faturaları paylaş.', icon: 'receipt-outline' },
   { title: 'Arıza talepleri', description: 'Sakinlerden gelen talepleri takip et.', icon: 'construct-outline' },
-  { title: 'Anketler', description: 'Kararlar için oylama başlat.', icon: 'stats-chart-outline' },
+  {
+    title: 'Anketler',
+    description: 'Kararlar için oylama başlat.',
+    icon: 'stats-chart-outline',
+    onPress: () => router.navigate('/manager/polls'),
+  },
 ];
 
 export default function ManagerHome() {
