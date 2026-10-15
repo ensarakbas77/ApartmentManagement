@@ -21,6 +21,8 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
   const colors = useThemeColors();
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(true);
+  const multiline = inputProps.multiline === true;
+  const length = inputProps.value?.length ?? 0;
 
   return (
     <View style={styles.wrapper}>
@@ -28,6 +30,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
       <View
         style={[
           styles.field,
+          multiline && styles.fieldMultiline,
           {
             backgroundColor: colors.surface,
             borderColor: focused ? colors.primary : colors.border,
@@ -49,7 +52,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
             setFocused(false);
             inputProps.onBlur?.(e);
           }}
-          style={[styles.input, { color: colors.text }, style]}
+          style={[styles.input, multiline && styles.inputMultiline, { color: colors.text }, style]}
         />
         {password ? (
           <Pressable
@@ -61,7 +64,16 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
           </Pressable>
         ) : null}
       </View>
-      {hint ? <Text style={[typography.caption, { color: colors.textMuted }]}>{hint}</Text> : null}
+      {hint || inputProps.maxLength ? (
+        <View style={styles.footer}>
+          <Text style={[typography.caption, styles.hint, { color: colors.textMuted }]}>{hint}</Text>
+          {inputProps.maxLength ? (
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              {length}/{inputProps.maxLength}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 });
@@ -79,9 +91,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
+  fieldMultiline: {
+    alignItems: 'flex-start',
+    paddingVertical: spacing.sm,
+  },
   input: {
     flex: 1,
     fontSize: 16,
     paddingVertical: spacing.sm,
+  },
+  inputMultiline: {
+    minHeight: 160,
+    textAlignVertical: 'top',
+  },
+  footer: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  hint: {
+    flex: 1,
   },
 });
