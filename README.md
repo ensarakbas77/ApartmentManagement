@@ -166,3 +166,9 @@ Apartman adı ve daire sayısı [`src/constants/apartment.ts`](src/constants/apa
 - [ ] APK dağıtımı (EAS Build) ve uzaktan güncelleme (EAS Update)
 - [ ] Bildirimler (duyuru, anket, talep güncellemesi)
 - [ ] iPhone kullanıcıları için web sürümü
+
+---
+
+## Lisans
+
+[MIT](LICENSE) © 2026 Ensar Akbaş
