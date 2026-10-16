@@ -1,6 +1,6 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
+import type * as NotificationsModule from 'expo-notifications';
 import {
   collection,
   deleteDoc,
@@ -41,16 +41,6 @@ interface PushMessage {
   target: PushTarget;
 }
 
-// Uygulama açıkken gelen bildirimler de üstte görünsün.
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
 /** Gerçek cihazda, APK içinde mi çalışıyoruz? (Expo Go Android'de uzaktan bildirim desteklemez.) */
 export function isPushSupported(): boolean {
   return (
@@ -60,9 +50,36 @@ export function isPushSupported(): boolean {
   );
 }
 
+let notificationsModule: typeof NotificationsModule | null | undefined;
+
+/**
+ * expo-notifications'ı sadece desteklenen ortamda ve ilk ihtiyaçta yükler. Expo Go'da kütüphane
+ * daha import edilirken yerel modül bulamayıp çöktüğü için dosyanın başında import edilmez.
+ */
+export function getNotifications(): typeof NotificationsModule | null {
+  if (notificationsModule !== undefined) return notificationsModule;
+  if (!isPushSupported()) {
+    notificationsModule = null;
+    return null;
+  }
+  const Notifications = require('expo-notifications') as typeof NotificationsModule;
+  // Uygulama açıkken gelen bildirimler de üstte görünsün.
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+  notificationsModule = Notifications;
+  return Notifications;
+}
+
 /** İzin ister, bildirim adresini alır ve kullanıcının kaydına yazar. Hata olursa sessizce vazgeçer. */
 export async function registerForPushNotifications(profile: UserProfile) {
-  if (!isPushSupported()) return;
+  const Notifications = getNotifications();
+  if (!Notifications) return;
   try {
     if (Platform.OS === 'android') {
       // Android 13+ izin penceresi ancak bir bildirim kanalı varsa çıkar.
