@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/text';
 import { APARTMENT_COUNT } from '@/constants/apartment';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { subscribeToUsers } from '@/services/users';
 import type { UserProfile } from '@/types/user';
 
@@ -30,7 +31,7 @@ export default function UsersScreen() {
           setUsers(list);
           setError(null);
         },
-        () => setError('Kullanıcılar yüklenemedi. İnternet bağlantınızı kontrol edin.'),
+        (err) => setError(firestoreErrorMessage(err, 'Kullanıcılar yüklenemedi')),
       ),
     [],
   );

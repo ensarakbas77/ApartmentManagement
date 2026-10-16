@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { formatRelativeDate } from '@/lib/date';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { subscribeToIssues } from '@/services/issues';
 import { ISSUE_CATEGORY_INFO, type Issue } from '@/types/issue';
 
@@ -46,7 +47,7 @@ export function IssuesListScreen({ onOpen, onCreate }: IssuesListScreenProps) {
           setIssues(list);
           setError(null);
         },
-        () => setError('Talepler yüklenemedi. İnternet bağlantınızı kontrol edin.'),
+        (err) => setError(firestoreErrorMessage(err, 'Talepler yüklenemedi')),
       ),
     [],
   );

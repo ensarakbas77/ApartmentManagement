@@ -11,6 +11,7 @@ import { Screen } from '@/components/ui/screen';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { tapFeedback } from '@/lib/haptics';
 import { callPhone, formatPhone } from '@/lib/phone';
 import { subscribeToContacts, type Contact } from '@/services/contacts';
@@ -34,7 +35,7 @@ export function ContactsScreen({ onCreate, onEdit }: ContactsScreenProps) {
           setContacts(list);
           setError(null);
         },
-        () => setError('Rehber yüklenemedi. İnternet bağlantınızı kontrol edin.'),
+        (err) => setError(firestoreErrorMessage(err, 'Rehber yüklenemedi')),
       ),
     [],
   );

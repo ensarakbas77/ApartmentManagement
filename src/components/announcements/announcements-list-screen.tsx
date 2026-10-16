@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/screen';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { spacing, useThemeColors } from '@/constants/theme';
 import { useUnreadAnnouncements } from '@/hooks/use-unread-announcements';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { subscribeToAnnouncements } from '@/services/announcements';
 import type { Announcement } from '@/types/announcement';
 
@@ -33,7 +34,7 @@ export function AnnouncementsListScreen({ onOpen, onCreate }: AnnouncementsListS
           setAnnouncements(list);
           setError(null);
         },
-        () => setError('Duyurular yüklenemedi. İnternet bağlantınızı kontrol edin.'),
+        (err) => setError(firestoreErrorMessage(err, 'Duyurular yüklenemedi')),
       ),
     [],
   );

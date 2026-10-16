@@ -16,6 +16,7 @@ import { APARTMENT_NAME } from '@/constants/apartment';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
 import { useApartmentSettings } from '@/hooks/use-apartment-settings';
 import { formatRelativeDate } from '@/lib/date';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { tapFeedback } from '@/lib/haptics';
 import { formatMoney } from '@/lib/money';
 import { sendWhatsApp } from '@/lib/phone';
@@ -92,8 +93,8 @@ export default function DuePeriodDetailScreen() {
     setBusyDueId(dueId);
     try {
       await action();
-    } catch {
-      setError('İşlem kaydedilemedi. İnternet bağlantınızı kontrol edin.');
+    } catch (err) {
+      setError(firestoreErrorMessage(err, 'İşlem kaydedilemedi'));
     } finally {
       setBusyDueId(null);
     }

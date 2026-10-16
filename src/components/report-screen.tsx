@@ -14,6 +14,7 @@ import { APARTMENT_NAME } from '@/constants/apartment';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { formatFullDate } from '@/lib/date';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { successFeedback } from '@/lib/haptics';
 import { formatMoney } from '@/lib/money';
 import { subscribeToAllDues } from '@/services/dues';
@@ -81,8 +82,8 @@ export function ReportScreen({ canPublish = false }: ReportScreenProps) {
             try {
               await publishReport(preview, profile);
               successFeedback();
-            } catch {
-              setError('Rapor yayınlanamadı. İnternet bağlantınızı kontrol edin.');
+            } catch (err) {
+              setError(firestoreErrorMessage(err, 'Rapor yayınlanamadı'));
             } finally {
               setPublishing(false);
             }

@@ -17,6 +17,7 @@ import {
 } from 'react';
 
 import { auth, db } from '@/config/firebase';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { usernameToEmail } from '@/lib/username';
 import { toUserProfile } from '@/services/users';
 import type { UserProfile } from '@/types/user';
@@ -79,11 +80,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfileError(null);
           setInitializing(false);
         },
-        () => {
+        (error) => {
           // Çıkış yapılırken gelen yetki hatalarını yok say.
           if (!auth.currentUser) return;
           setProfile(null);
-          setProfileError('Kullanıcı bilgileri alınamadı. İnternet bağlantınızı kontrol edin.');
+          setProfileError(firestoreErrorMessage(error, 'Kullanıcı bilgileri alınamadı'));
           setInitializing(false);
           void firebaseSignOut(auth);
         },

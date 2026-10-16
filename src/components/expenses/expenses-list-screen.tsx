@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/screen';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { formatMoney } from '@/lib/money';
 import { subscribeToAllDues, summarizeDues } from '@/services/dues';
 import { subscribeToExpenses, sumExpenses, totalsByCategory } from '@/services/expenses';
@@ -43,7 +44,7 @@ export function ExpensesListScreen({ onOpen, onCreate }: ExpensesListScreenProps
           setExpenses(list);
           setError(null);
         },
-        () => setError('Giderler yüklenemedi. İnternet bağlantınızı kontrol edin.'),
+        (err) => setError(firestoreErrorMessage(err, 'Giderler yüklenemedi')),
       ),
     [],
   );

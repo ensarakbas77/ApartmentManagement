@@ -25,6 +25,7 @@ import {
 } from 'firebase/firestore';
 
 import { app, db } from '@/config/firebase';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { isValidPhone, normalizePhone } from '@/lib/phone';
 import { isValidUsername, normalizeUsername, usernameToEmail } from '@/lib/username';
 import { isUserRole, type UserProfile, type UserRole } from '@/types/user';
@@ -167,10 +168,10 @@ export async function createUser(input: NewUserInput): Promise<UserProfile> {
       mustChangePassword: true,
       createdAt: serverTimestamp(),
     });
-  } catch {
+  } catch (error) {
     // Profil yazılamadıysa yarım kalan Auth hesabını geri al ki kullanıcı adı boşa gitmesin.
     await deleteUser(credential.user).catch(() => undefined);
-    throw new UserServiceError('Kullanıcı kaydedilemedi. İnternet bağlantınızı kontrol edin.');
+    throw new UserServiceError(firestoreErrorMessage(error, 'Kullanıcı kaydedilemedi'));
   } finally {
     await signOut(creatorAuth).catch(() => undefined);
   }

@@ -15,6 +15,7 @@ import { Text } from '@/components/ui/text';
 import { APARTMENT_COUNT } from '@/constants/apartment';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { subscribeToPolls } from '@/services/polls';
 import type { Poll } from '@/types/poll';
 
@@ -36,7 +37,7 @@ export function PollsListScreen({ onOpen, onCreate }: PollsListScreenProps) {
           setPolls(list);
           setError(null);
         },
-        () => setError('Anketler yüklenemedi. İnternet bağlantınızı kontrol edin.'),
+        (err) => setError(firestoreErrorMessage(err, 'Anketler yüklenemedi')),
       ),
     [],
   );

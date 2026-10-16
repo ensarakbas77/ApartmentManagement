@@ -14,6 +14,7 @@ import { Screen } from '@/components/ui/screen';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { spacing, typography, useThemeColors } from '@/constants/theme';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { formatMoney } from '@/lib/money';
 import { subscribeToAllDues, subscribeToPeriods, summarizeDues } from '@/services/dues';
 import { formatPeriod, type Due, type DuePeriod } from '@/types/dues';
@@ -25,7 +26,7 @@ export default function ManagerDuesScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const onError = () => setError('Aidatlar yüklenemedi. İnternet bağlantınızı kontrol edin.');
+    const onError = (err: Error) => setError(firestoreErrorMessage(err, 'Aidatlar yüklenemedi'));
     const stopPeriods = subscribeToPeriods(setPeriods, onError);
     const stopDues = subscribeToAllDues(setDues, onError);
     return () => {

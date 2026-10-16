@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 import { radius, spacing, typography, useThemeColors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { formatRelativeDate } from '@/lib/date';
+import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { formatMoney } from '@/lib/money';
 import { subscribeToApartmentDues, summarizeDues } from '@/services/dues';
 import { formatPeriod, PAYMENT_METHOD_LABELS, type Due } from '@/types/dues';
@@ -33,7 +34,7 @@ export default function ResidentDuesScreen() {
         setDues(list);
         setError(null);
       },
-      () => setError('Aidatlar yüklenemedi. İnternet bağlantınızı kontrol edin.'),
+      (err) => setError(firestoreErrorMessage(err, 'Aidatlar yüklenemedi')),
     );
   }, [apartmentNo]);
 

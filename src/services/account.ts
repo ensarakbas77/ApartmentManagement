@@ -38,7 +38,10 @@ export async function changePassword(currentPassword: string, newPassword: strin
     if (error instanceof FirebaseError && error.code === 'auth/weak-password') {
       throw new AccountError('Yeni şifre çok zayıf. Daha uzun bir şifre seçin.');
     }
-    throw new AccountError('Şifre değiştirilemedi. İnternet bağlantınızı kontrol edin.');
+    if (error instanceof FirebaseError && error.code === 'auth/network-request-failed') {
+      throw new AccountError('Şifre değiştirilemedi. İnternet bağlantınızı kontrol edin.');
+    }
+    throw new AccountError('Şifre değiştirilemedi. Lütfen tekrar deneyin.');
   }
 
   // İlk giriş zorunluluğunu kaldır. Başarısız olursa şifre yine de değişmiştir; kullanıcı
