@@ -4,6 +4,8 @@ Bir apartman için geliştirilmiş mobil yönetim uygulaması. Aidat takibi, duy
 
 Uygulama mağazaya yüklenmez; Android cihazlara APK olarak dağıtılır. Tamamen **Firebase'in ücretsiz (Spark) planında** çalışır.
 
+📘 Teknolojilerin anlatımı, mimari, veri modeli ve modüllerin ayrıntıları için: **[Teknik Dokümantasyon](docs/DOKUMANTASYON.md)**
+
 ---
 
 ## Özellikler
@@ -20,7 +22,8 @@ Roller yalnızca arayüzde değil, **Firestore güvenlik kurallarında** da zoru
 
 ### Modüller
 
-- **Giriş** — Kullanıcı adı ve şifre ile (e-posta gerekmez). Herkes kendi şifresini ve telefonunu değiştirebilir.
+- **Giriş** — Kullanıcı adı ve şifre ile (e-posta gerekmez). Yeni kullanıcılar ilk girişte kendi şifresini belirler. Herkes şifresini ve telefonunu değiştirebilir.
+- **Bildirimler** — Yeni duyuru, anket ve aidat dönemi herkese; yeni arıza talebi yöneticiye; talep güncellemesi talebi açan sakine anlık bildirim olarak gider.
 - **Ana sayfa (özet panosu)** — Kişiye özel durum: ödenmemiş aidat ya da bu ayın tahsilatı, "Sizi bekleyenler" listesi, son duyuru ve hızlı erişim.
 - **Duyurular** — Yönetici yayınlar, "önemli" olarak işaretleyebilir. Sakinler okunmamış duyuruları rozetle görür; yönetici hangi dairelerin okuduğunu takip eder.
 - **Aidat takibi** — Aylık dönem açılır, 9 daire için kayıt oluşur. Ödemeler Nakit/EFT olarak işaretlenir. Sakin yalnızca kendi dairesinin borcunu görür. IBAN kartı ve tek dokunuşla kopyalama; ödemeyen daireye WhatsApp hatırlatması.
@@ -39,6 +42,8 @@ Roller yalnızca arayüzde değil, **Firestore güvenlik kurallarında** da zoru
 | Uygulama | [Expo SDK 57](https://docs.expo.dev), React Native 0.86, React 19, TypeScript |
 | Yönlendirme | Expo Router (dosya tabanlı, `Stack.Protected` ile rol koruması) |
 | Arka uç | Firebase Authentication, Cloud Firestore |
+| Bildirim | expo-notifications, Expo Push Servisi, Firebase Cloud Messaging |
+| Dağıtım | EAS Build (APK), EAS Update (uzaktan güncelleme) |
 | Arayüz | Kendi bileşen seti, Plus Jakarta Sans, Ionicons, Reanimated |
 
 ---
@@ -123,7 +128,7 @@ Sonraki tüm kullanıcılar uygulamadaki admin panelinden eklenir.
 
 | Koleksiyon | İçerik | Okuma | Yazma |
 |---|---|---|---|
-| `users/{uid}` | Profil, rol, daire, telefon | Kendisi, yönetici, admin | Admin (kişi kendi telefonunu) |
+| `users/{uid}` | Profil, rol, daire, telefon | Kendisi, yönetici, admin | Admin (kişi kendi telefonunu ve ilk giriş işaretini) |
 | `announcements/{id}` | Duyurular | Herkes | Yönetici |
 | `announcements/{id}/reads/{uid}` | Okunma kayıtları | Yönetici | Kişinin kendisi |
 | `duePeriods/{yyyy-mm}` | Aylık aidat dönemleri | Herkes | Yönetici |
@@ -134,6 +139,7 @@ Sonraki tüm kullanıcılar uygulamadaki admin panelinden eklenir.
 | `polls/{id}` · `votes/{daire}` | Anketler ve gizli oylar | Herkes · ilgili daire | Yönetici · daire tek oy |
 | `contacts/{id}` | Önemli numaralar | Herkes | Yönetici |
 | `settings/apartment` | IBAN ve hesap bilgisi | Herkes | Yönetici |
+| `pushTokens/{uid}` | Bildirim adresi | Yönetici, admin; sakin sadece yöneticilerinkini | Kişinin kendisi |
 
 "Herkes", profili olan giriş yapmış kullanıcıları ifade eder.
 
@@ -162,10 +168,10 @@ Apartman adı ve daire sayısı [`src/constants/apartment.ts`](src/constants/apa
 
 ## Yol haritası
 
-- [ ] İlk girişte zorunlu şifre değişikliği
-- [ ] APK dağıtımı (EAS Build) ve uzaktan güncelleme (EAS Update)
-- [ ] Bildirimler (duyuru, anket, talep güncellemesi)
-- [ ] iPhone kullanıcıları için web sürümü
+- [x] İlk girişte zorunlu şifre değişikliği
+- [x] APK dağıtımı (EAS Build) ve uzaktan güncelleme (EAS Update)
+- [x] Bildirimler (duyuru, anket, aidat, talep güncellemesi)
+- [ ] iPhone desteği (kod uyumlu; Apple geliştirici hesabı gerektirir)
 
 ---
 
