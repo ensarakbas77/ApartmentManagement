@@ -18,5 +18,7 @@ export default function Index() {
 
   if (!profile) return <Redirect href="/login" />;
 
+  if (profile.mustChangePassword) return <Redirect href="/set-password" />;
+
   return <Redirect href={HOME_BY_ROLE[profile.role]} />;
 }

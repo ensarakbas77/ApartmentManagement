@@ -57,6 +57,7 @@ export function toUserProfile(snapshot: DocumentSnapshot<DocumentData>): UserPro
     role: data.role,
     apartmentNo: typeof data.apartmentNo === 'number' ? data.apartmentNo : null,
     phone: typeof data.phone === 'string' ? data.phone : '',
+    mustChangePassword: data.mustChangePassword === true,
     createdAt: data.createdAt,
   };
 }
@@ -151,6 +152,7 @@ export async function createUser(input: NewUserInput): Promise<UserProfile> {
     role: input.role,
     apartmentNo: input.apartmentNo,
     phone,
+    mustChangePassword: true,
   };
 
   try {
@@ -161,6 +163,8 @@ export async function createUser(input: NewUserInput): Promise<UserProfile> {
       role: profile.role,
       apartmentNo: profile.apartmentNo,
       phone: profile.phone,
+      // Admin'in WhatsApp'tan ilettiği geçici şifre ilk girişte değiştirilmeli.
+      mustChangePassword: true,
       createdAt: serverTimestamp(),
     });
   } catch {

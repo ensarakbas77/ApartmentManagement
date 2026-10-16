@@ -25,6 +25,8 @@ export interface UserProfile {
   apartmentNo: number | null;
   /** İsteğe bağlı; WhatsApp hatırlatmaları için. Boş olabilir. */
   phone: string;
+  /** true ise kullanıcı ilk girişte geçici şifresini değiştirmeye yönlendirilir. */
+  mustChangePassword: boolean;
   createdAt?: Timestamp;
 }
 

@@ -25,7 +25,9 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { initializing, profile } = useAuth();
-  const role = profile?.role;
+  // Geçici şifresini değiştirmemiş kullanıcı panellere giremez, sadece şifre ekranını görür.
+  const mustChangePassword = profile?.mustChangePassword === true;
+  const role = mustChangePassword ? undefined : profile?.role;
 
   const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_400Regular,
@@ -54,6 +56,10 @@ function RootNavigator() {
 
       <Stack.Protected guard={!profile}>
         <Stack.Screen name="login" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={mustChangePassword}>
+        <Stack.Screen name="set-password" />
       </Stack.Protected>
 
       <Stack.Protected guard={role === 'admin'}>

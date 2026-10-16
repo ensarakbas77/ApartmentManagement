@@ -1,7 +1,8 @@
 import { FirebaseError } from 'firebase/app';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
 
-import { auth } from '@/config/firebase';
+import { auth, db } from '@/config/firebase';
 
 export const MIN_PASSWORD_LENGTH = 6;
 
@@ -39,6 +40,10 @@ export async function changePassword(currentPassword: string, newPassword: strin
     }
     throw new AccountError('Şifre değiştirilemedi. İnternet bağlantınızı kontrol edin.');
   }
+
+  // İlk giriş zorunluluğunu kaldır. Başarısız olursa şifre yine de değişmiştir; kullanıcı
+  // ekranda kalır ve yeni şifresini "mevcut şifre" olarak girip tekrar deneyebilir.
+  await updateDoc(doc(db, 'users', user.uid), { mustChangePassword: false }).catch(() => undefined);
 }
 
 function getReauthErrorMessage(error: unknown): string {

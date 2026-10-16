@@ -63,7 +63,8 @@ export default function NewUserScreen() {
       const message =
         `${APARTMENT_NAME} uygulaması giriş bilgileri\n` +
         `Kullanıcı adı: ${user.username}\n` +
-        `Şifre: ${password}`;
+        `Geçici şifre: ${password}\n\n` +
+        'İlk girişte kendi şifrenizi belirlemeniz istenecek.';
 
       Alert.alert('Kullanıcı oluşturuldu', `${message}\n\nBu bilgileri sakine iletin.`, [
         {
