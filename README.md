@@ -1,6 +1,6 @@
-# Sürur Apartmanı · Apartman Yönetimi
+# Apartman Yönetimi
 
-9 daireli bir apartman için geliştirilmiş mobil yönetim uygulaması. Aidat takibi, duyurular, arıza bildirimleri, anketler ve giderler tek bir yerde; yönetici ile sakinler arasındaki iletişim şeffaf ve kayıt altında.
+Bir apartman için geliştirilmiş mobil yönetim uygulaması. Aidat takibi, duyurular, arıza bildirimleri, anketler ve giderler tek bir yerde; yönetici ile sakinler arasındaki iletişim şeffaf ve kayıt altında.
 
 Uygulama mağazaya yüklenmez; Android cihazlara APK olarak dağıtılır. Tamamen **Firebase'in ücretsiz (Spark) planında** çalışır.
 
