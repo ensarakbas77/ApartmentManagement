@@ -3,7 +3,7 @@
     "name": "Sürur Apartmanı",
     "slug": "surur-apartmani",
     "owner": "ensar_akbas",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sururapartmani",
@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.ensarakbas.sururapartmani",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#26215C",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -35,7 +36,15 @@
           "imageWidth": 110
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#26215C",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

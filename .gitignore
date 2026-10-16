@@ -45,3 +45,8 @@ example
 # Firebase anahtarlari (git'e eklenmez)
 .env
 
+
+# Firebase servis hesabý anahtarlarý (gizli; Expo'ya yüklenir, repoya girmez)
+*-firebase-adminsdk-*.json
+service-account*.json
+

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "826249997194",
+    "project_id": "apartman-yonetimi-e6d91",
+    "storage_bucket": "apartman-yonetimi-e6d91.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826249997194:android:478b85dd2fa222317fb673",
+        "android_client_info": {
+          "package_name": "com.ensarakbas.sururapartmani"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "826249997194-i2nnggherqinj526jpnpavocp74avdok.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBk1SzsS7eBnMnZs9XMU15DYHfp-oec6r8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "826249997194-i2nnggherqinj526jpnpavocp74avdok.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

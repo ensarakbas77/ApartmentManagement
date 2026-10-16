@@ -15,7 +15,9 @@ import {
 
 import { db } from '@/config/firebase';
 import { APARTMENT_NUMBERS } from '@/constants/apartment';
-import { toPeriodId, type Due, type DuePeriod, type PaymentMethod } from '@/types/dues';
+import { formatMoney } from '@/lib/money';
+import { sendPush } from '@/services/push';
+import { formatPeriod, toPeriodId, type Due, type DuePeriod, type PaymentMethod } from '@/types/dues';
 import type { UserProfile } from '@/types/user';
 
 const periodsCollection = collection(db, 'duePeriods');
@@ -169,6 +171,16 @@ export async function createPeriod(year: number, month: number, amount: number, 
     });
   }
   await batch.commit();
+
+  void sendPush(
+    { kind: 'all' },
+    {
+      title: `${formatPeriod(year, month)} aidatı`,
+      body: `Bu ayın aidatı ${formatMoney(amount)}. Ödeme bilgileri uygulamada.`,
+      target: { type: 'dues' },
+    },
+    author.uid,
+  );
 }
 
 export async function markDuePaid(dueId: string, method: PaymentMethod) {

@@ -131,6 +131,25 @@ service cloud.firestore {
       }
     }
 
+    // pushTokens/{uid}: kullanıcının telefonundaki bildirim adresi.
+    // Yönetici/admin herkese bildirim gönderebilmek için tümünü, sakin ise sadece "yeni talep"
+    // bildirimi için yöneticilerinkini okuyabilir.
+    match /pushTokens/{userId} {
+      allow read: if isManagerOrAdmin()
+        || (hasProfile() && resource.data.role == 'manager');
+
+      allow create, update: if hasProfile()
+        && userId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['token', 'role', 'apartmentNo', 'updatedAt'])
+        && request.resource.data.token is string && request.resource.data.token.size() <= 200
+        && request.resource.data.role == me().role
+        && request.resource.data.apartmentNo == me().apartmentNo
+        && request.resource.data.updatedAt == request.time;
+
+      // Kişi çıkış yaparken kendi kaydını, admin kullanıcı silerken o kişinin kaydını siler.
+      allow delete: if (isSignedIn() && userId == request.auth.uid) || isAdmin();
+    }
+
     // settings/apartment: apartmanın ödeme bilgileri (IBAN vb.). Herkes okur, yönetici yazar.
     match /settings/{settingId} {
       allow read: if hasProfile();

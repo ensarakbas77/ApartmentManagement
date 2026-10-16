@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '@/config/firebase';
+import { sendPush } from '@/services/push';
 import {
   POLL_DESCRIPTION_MAX,
   POLL_MAX_OPTIONS,
@@ -148,7 +149,7 @@ export async function createPoll(input: NewPollInput, author: UserProfile) {
   if (new Set(lowered).size !== lowered.length) throw new PollError('Aynı seçenek iki kez yazılmış.');
 
   const options = optionTexts.map((text, i) => ({ id: POLL_OPTION_IDS[i], text }));
-  await addDoc(pollsCollection, {
+  const ref = await addDoc(pollsCollection, {
     question,
     description,
     options,
@@ -159,6 +160,11 @@ export async function createPoll(input: NewPollInput, author: UserProfile) {
     authorName: author.displayName,
     createdAt: serverTimestamp(),
   });
+  void sendPush(
+    { kind: 'all' },
+    { title: 'Yeni anket: oyunuzu kullanın', body: question, target: { type: 'poll', id: ref.id } },
+    author.uid,
+  );
 }
 
 /**

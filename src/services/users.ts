@@ -27,6 +27,7 @@ import {
 import { app, db } from '@/config/firebase';
 import { firestoreErrorMessage } from '@/lib/firestore-errors';
 import { isValidPhone, normalizePhone } from '@/lib/phone';
+import { unregisterPushNotifications } from '@/services/push';
 import { isValidUsername, normalizeUsername, usernameToEmail } from '@/lib/username';
 import { isUserRole, type UserProfile, type UserRole } from '@/types/user';
 
@@ -187,6 +188,8 @@ export async function createUser(input: NewUserInput): Promise<UserProfile> {
  */
 export async function removeUser(uid: string): Promise<void> {
   await deleteDoc(doc(usersCollection, uid));
+  // Silinen kişiye artık bildirim gitmesin.
+  await unregisterPushNotifications(uid);
 }
 
 export async function updateUserRole(uid: string, role: AssignableRole): Promise<void> {

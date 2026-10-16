@@ -19,6 +19,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '@/config/firebase';
+import { sendPush } from '@/services/push';
 import {
   ANNOUNCEMENT_BODY_MAX,
   ANNOUNCEMENT_TITLE_MAX,
@@ -104,12 +105,21 @@ function validate(input: AnnouncementInput): AnnouncementInput {
 
 export async function createAnnouncement(input: AnnouncementInput, author: UserProfile) {
   const data = validate(input);
-  await addDoc(announcementsCollection, {
+  const ref = await addDoc(announcementsCollection, {
     ...data,
     authorUid: author.uid,
     authorName: author.displayName,
     createdAt: serverTimestamp(),
   });
+  void sendPush(
+    { kind: 'all' },
+    {
+      title: data.important ? 'Önemli duyuru' : 'Yeni duyuru',
+      body: data.title,
+      target: { type: 'announcement', id: ref.id },
+    },
+    author.uid,
+  );
 }
 
 export async function updateAnnouncement(id: string, input: AnnouncementInput) {

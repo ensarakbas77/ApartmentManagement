@@ -12,10 +12,12 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '@/config/firebase';
+import { sendPush } from '@/services/push';
 import {
   ISSUE_DESCRIPTION_MAX,
   ISSUE_LOCATION_MAX,
   ISSUE_NOTE_MAX,
+  ISSUE_STATUS_LABELS,
   ISSUE_TITLE_MAX,
   isIssueCategory,
   isIssueStatus,
@@ -103,7 +105,7 @@ export async function createIssue(input: NewIssueInput, reporter: UserProfile) {
   if (location.length > ISSUE_LOCATION_MAX) throw new IssueError('Yer bilgisi çok uzun.');
   if (description.length > ISSUE_DESCRIPTION_MAX) throw new IssueError('Açıklama çok uzun.');
 
-  await addDoc(issuesCollection, {
+  const ref = await addDoc(issuesCollection, {
     title,
     location,
     description,
@@ -115,18 +117,40 @@ export async function createIssue(input: NewIssueInput, reporter: UserProfile) {
     managerNote: '',
     createdAt: serverTimestamp(),
   });
+  void sendPush(
+    { kind: 'managers' },
+    {
+      title: `Yeni talep · Daire ${reporter.apartmentNo}`,
+      body: title,
+      target: { type: 'issue', id: ref.id },
+    },
+    reporter.uid,
+  );
 }
 
-/** Yönetici talebin durumunu ve notunu günceller. */
-export async function updateIssueStatus(id: string, status: IssueStatus, managerNote: string) {
+/** Yönetici talebin durumunu ve notunu günceller; durum değiştiyse talebi açan kişiye bildirim gider. */
+export async function updateIssueStatus(issue: Issue, status: IssueStatus, managerNote: string) {
   const note = managerNote.trim();
   if (note.length > ISSUE_NOTE_MAX) throw new IssueError('Not çok uzun.');
-  await updateDoc(doc(issuesCollection, id), {
+  await updateDoc(doc(issuesCollection, issue.id), {
     status,
     managerNote: note,
     updatedAt: serverTimestamp(),
     resolvedAt: status === 'resolved' ? serverTimestamp() : null,
   });
+
+  const statusChanged = status !== issue.status;
+  const noteChanged = note !== issue.managerNote;
+  if (statusChanged || noteChanged) {
+    void sendPush(
+      { kind: 'user', uid: issue.reporterUid },
+      {
+        title: statusChanged ? `Talebiniz: ${ISSUE_STATUS_LABELS[status]}` : 'Talebinize not eklendi',
+        body: note ? `${issue.title} · ${note}` : issue.title,
+        target: { type: 'issue', id: issue.id },
+      },
+    );
+  }
 }
 
 export async function deleteIssue(id: string) {

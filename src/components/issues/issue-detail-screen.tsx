@@ -81,7 +81,7 @@ export function IssueDetailScreen({ id, canManage = false }: IssueDetailScreenPr
     setError(null);
     setBusy('save');
     try {
-      await updateIssueStatus(current.id, status, note);
+      await updateIssueStatus(current, status, note);
     } catch (err) {
       setError(err instanceof IssueError ? err.message : 'Talep güncellenemedi.');
     } finally {

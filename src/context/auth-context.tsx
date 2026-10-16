@@ -18,6 +18,7 @@ import {
 
 import { auth, db } from '@/config/firebase';
 import { firestoreErrorMessage } from '@/lib/firestore-errors';
+import { unregisterPushNotifications } from '@/services/push';
 import { usernameToEmail } from '@/lib/username';
 import { toUserProfile } from '@/services/users';
 import type { UserProfile } from '@/types/user';
@@ -104,6 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     stopProfileListener();
+    // Çıkış yapan kişiye bu telefonda bildirim gitmesin (oturum kapanmadan önce silinmeli).
+    if (auth.currentUser) await unregisterPushNotifications(auth.currentUser.uid);
     await firebaseSignOut(auth);
   }, [stopProfileListener]);
 

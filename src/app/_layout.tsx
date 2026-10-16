@@ -10,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/context/auth-context';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 
 // Oturum kontrol edilip yazı tipleri yüklenene kadar açılış ekranı (splash) görünür kalsın.
 void SplashScreen.preventAutoHideAsync();
@@ -25,6 +26,7 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { initializing, profile } = useAuth();
+  usePushNotifications(profile);
   // Geçici şifresini değiştirmemiş kullanıcı panellere giremez, sadece şifre ekranını görür.
   const mustChangePassword = profile?.mustChangePassword === true;
   const role = mustChangePassword ? undefined : profile?.role;
